@@ -127,7 +127,13 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="main.cpp" />
     <ClCompile Include="Models.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="AirCraft.h" />
+    <ClInclude Include="Leg.h" />
+    <ClInclude Include="Path.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
