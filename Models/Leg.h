@@ -16,7 +16,7 @@ public:
 	{
 		this->to = to;
 		this->from = from;
-		if (type == "Mandatory" || type == "M" || type == "m") {
+		if (type == "Mandatory" || type == "M" || type == "m" || type == "mandatory") {
 			this->type = "Mandatory";
 		}
 		else {
