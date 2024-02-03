@@ -1,25 +1,50 @@
 #pragma once
-#include <string>
+#include <iostream>
+#include "Path.h"
+#include "AirCraft.h"
+
 using namespace std;
+
 class Leg
 {
 public:
 	string to;
 	string from;
 	string type;
-	Leg() : to(""), from(""), type("") {}
+	Leg() : to(""), from(""), type(""){}
 	Leg(string to,string from,string type)
 	{
 		this->to = to;
 		this->from = from;
-		this->type = type;
+		if (type == "Mandatory" || type == "M" || type == "m") {
+			this->type = "Mandatory";
+		}
+		else {
+			this->type = "Optional";
+		}
 	}
 	// Function to display leg details
-	void displayLeg() const {
+	void displayLeg(){
 		cout << "Leg Details:" << endl;
 		cout << "To: " << to << endl;
 		cout << "From: " << from << endl;
 		cout << "Type: " << type << endl;
 	}
+
+	// Function to get the value of 'to'
+	string getTo() const {
+		return to;
+	}
+
+	// Function to get the value of 'from'
+	string getFrom() const {
+		return from;
+	}
+
+	// Function to get the value of 'type'
+	string getType() const {
+		return type;
+	}
+
 };
 

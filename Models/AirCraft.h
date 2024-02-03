@@ -1,4 +1,10 @@
 #pragma once
+#include <iostream>
+#include "Path.h"
+#include "Leg.h"
+
+using namespace std;
+
 class AirCraft
 {
 public:
@@ -6,11 +12,10 @@ public:
 	int NumberAirCraft;
     int numNodes;
 	string* nodes;
+    // Default ructor
+    AirCraft() : Type(""), NumberAirCraft(0), nodes(nullptr){}
 
-    // Default constructor
-    AirCraft() : Type(""), NumberAirCraft(0), nodes(nullptr) {}
-
-    // Constructor
+    // ructor
     AirCraft(string type, int numberAirCraft, int numNodes)
         : Type(type), NumberAirCraft(numberAirCraft),numNodes(numNodes) {
         // Allocate memory for the nodes array
@@ -24,7 +29,7 @@ public:
     }
 
     // Function to set values for nodes
-    void setNodesValues(const string* nodeValues, int numNodes) {
+    void setNodesValues(string* nodeValues, int numNodes) {
         for (int i = 0; i < numNodes; ++i) {
             nodes[i] = nodeValues[i];
         }
@@ -40,5 +45,11 @@ public:
         }
         cout << endl;
     }
+
+    // Function to get the value of Type
+    string getType() {
+        return Type;
+    }
+
 };
 

@@ -6,15 +6,15 @@
 //#pragma region Problem Data
 //
 //	// Aircraft Types
-//	int numOfAirCrafts;
+//	int numOfAircraft;
 //
 //	cout << "Input Aircrafts Number : ";
-//	cin >> numOfAirCrafts;
+//	cin >> numOfAircraft;
 //	cout << endl;
 //
-//	string* AircraftsType = new string[numOfAirCrafts]; //indexed by (a)
+//	string* AircraftsType = new string[numOfAircraft]; //indexed by (a)
 //
-//	for (int a = 0; a < numOfAirCrafts; a++)
+//	for (int a = 0; a < numOfAircraft; a++)
 //	{
 //		cout << "Input Aircrafts Type [" << a + 1 << "] : ";
 //		cin >> AircraftsType[a];
@@ -69,9 +69,9 @@
 //	//Nodes : city in network of Aircraft type a 
 //	int numOfNodes;
 //
-//	string** NodesOfAircraft = new string * [numOfAirCrafts]; //indexed by (n) and a ==> AT
+//	string** NodesOfAircraft = new string * [numOfAircraft]; //indexed by (n) and a ==> AT
 //
-//	for (int a = 0; a < numOfAirCrafts; a++) {
+//	for (int a = 0; a < numOfAircraft; a++) {
 //		cout << "Input Nodes in aircraft type [" << AircraftsType[a] << "] network Number : ";
 //		cin >> numOfNodes;
 //		cout << endl;
@@ -81,7 +81,7 @@
 //
 //
 //
-//	for (int a = 0; a < numOfAirCrafts; a++) {
+//	for (int a = 0; a < numOfAircraft; a++) {
 //		for (int n = 0; n < numOfNodes; n++)
 //		{
 //			cout << "Input nodes in netwok of type [" << AircraftsType[a] << "][" << n + 1 << "] : ";
@@ -174,9 +174,9 @@
 //	}
 //
 //	//Parameters
-//	int** Caj = new int* [numOfAirCrafts]; //cost of assigning fleet type a to leg j
+//	int** Caj = new int* [numOfAircraft]; //cost of assigning fleet type a to leg j
 //
-//	for (int a = 0; a < numOfAirCrafts; a++) {
+//	for (int a = 0; a < numOfAircraft; a++) {
 //		Caj[a] = new int[numOfFlightLegs];
 //		for (int j = 0; j < numOfFlightLegs; j++) {
 //			cout << "Input cost of assigning fleet type [" << AircraftsType[a] << "] to leg [" << FlightLegs[j] << "] : ";
@@ -185,17 +185,17 @@
 //		}
 //	}
 //
-//	int* NAa = new int[numOfAirCrafts]; //number of available aircraft for fleet type a
+//	int* NAa = new int[numOfAircraft]; //number of available aircraft for fleet type a
 //
-//	for (int a = 0; a < numOfAirCrafts; a++) {
+//	for (int a = 0; a < numOfAircraft; a++) {
 //		cout << "Input number of available aircraft for fleet type [" << AircraftsType[a] << "] : ";
 //		cin >> NAa[a];
 //		cout << endl;
 //	}
 //
-//	int** Capah = new int* [numOfAirCrafts]; //capacity of aircraft type a to accommodate passengers for fare class h
+//	int** Capah = new int* [numOfAircraft]; //capacity of aircraft type a to accommodate passengers for fare class h
 //
-//	for (int a = 0; a < numOfAirCrafts; a++) {
+//	for (int a = 0; a < numOfAircraft; a++) {
 //		Capah[a] = new int[numOfFareClasses];
 //		for (int h = 0; h < numOfFareClasses; h++) {
 //			cout << "Input capacity of aircraft type [" << AircraftsType[a] << "] to accommodate passengers for fare class [" << FareClasses[h] << "] : ";
@@ -230,3 +230,4 @@
 //
 //	return 0;
 //}
+
