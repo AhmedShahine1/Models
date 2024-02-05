@@ -299,7 +299,7 @@ int main() {
 
     int numOfPathsWithLegO = 0;
     // Get all paths with at least one leg of type "o"
-    Path* pathsWithTypeO = getAllPathsWithLegOfTypeM(Paths, numOfPaths, numOfPathsWithLegO);
+    Path* pathsWithTypeO = getAllPathsWithLegOfTypeO(Paths, numOfPaths, numOfPathsWithLegO);
 
     int numOfLegsOfTypeM = 0;
     // Get all legs with type "m"
@@ -309,7 +309,8 @@ int main() {
     // Get all legs with type "O"
     Leg* legsOfTypeO = getAllLegsOfTypeO(Paths, numOfPaths, numOfLegsOfTypeO);
 
-    Constraints constrain = Constraints(numOfAircraft, numOfPaths, numOfFlightLegs, numOfFareClasses, numOfLegsOfTypeO, numOfLegsOfTypeM, numOfPathsWithLegO, numOfPathsWithLegM, legs, Paths, aircraftArray, NameFareClasses, Caj, Fph, pathsWithTypeM, pathsWithTypeO, legsOfTypeM, legsOfTypeO);
+    Constraints constrain = Constraints( numOfAircraft, numOfPaths, numOfFlightLegs, numOfFareClasses, numOfLegsOfTypeO, numOfLegsOfTypeM, numOfPathsWithLegO, numOfPathsWithLegM, legs, Paths, aircraftArray, NameFareClasses, Caj, Fph, pathsWithTypeM, pathsWithTypeO, legsOfTypeM, legsOfTypeO);
+    constrain.Consrtaint_9();
     #pragma endregion
 	return 0;
 }

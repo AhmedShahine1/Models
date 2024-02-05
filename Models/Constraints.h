@@ -38,8 +38,18 @@ public:
     }
 	~Constraints() {}
 
-	string Consrtaint_9() {
-
+	void Consrtaint_9() {
+		for (int i = 0; i < numOfPathsWithLegO; i++)
+		{
+			for (int j = 0; j < numberOfFareClasses; j++) {
+				cout << "passengers(From: "<< pathsWithTypeO[i].getFrom()<<" ,To: "<< pathsWithTypeO[i].getTo()<<" ,Fare Class: "<<FareClasses[j]<<") <= Min{Mean Demand(From: " << pathsWithTypeO[i].getFrom() << " ,To: " << pathsWithTypeO[i].getTo() << " ,Fare Class: " << FareClasses[j]<<"),Max Cap[";
+				for (int x = 0; x < numberofAirCrafts; x++)
+				{
+					cout << "Cap(" << AirCrafts[x].getType() << ","<<FareClasses[j]<<"), ";
+				}
+				cout << "]}" << endl;
+			}
+		}
 	}
 };
 
