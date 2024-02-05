@@ -132,6 +132,8 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AirCraft.h" />
+    <ClInclude Include="Constraints.h" />
+    <ClInclude Include="FareClass.h" />
     <ClInclude Include="Leg.h" />
     <ClInclude Include="Path.h" />
   </ItemGroup>

@@ -2,6 +2,7 @@
 #include <iostream>
 #include "AirCraft.h"
 #include "Leg.h"
+#include "FareClass.h"
 
 using namespace std;
 
@@ -11,16 +12,21 @@ public:
 	Leg* Legs;
 	string to;
 	string from;
-	//FareClass* fareClasses;
 	int legCount;
-	Path() : Legs(nullptr), to(""), from(""){}
-	Path(string to, string from, int legCount)
+	FareClass* fareClasses;
+	int fareClassCount;
+	Path() : Legs(nullptr), to(""), from(""), fareClasses(nullptr){}
+
+	Path(string to, string from, int legCount, int fareClassCount)
 	{
 		this->legCount = legCount;
 		this->to = to;
 		this->from = from;
+		this->fareClassCount = fareClassCount;
+		fareClasses = new FareClass[fareClassCount];
 		Legs = new Leg[legCount];
 	}
+
 	~Path() {
 		delete[] Legs;
 	}
@@ -32,17 +38,36 @@ public:
 		}
 	}
 
+	// Function to add a Fare Class to the path
+	void addFareClass(FareClass* newFareClass) {
+		for (int i = 0; i < fareClassCount; ++i) {
+			fareClasses[i] = newFareClass[i];
+		}
+	}
+
 	// Function to display path details
-	void displayPath()  {
+	void displayPath(){
+		cout << "Path Details:" << endl;
 		cout << "To: " << to << endl;
 		cout << "From: " << from << endl;
+		cout << "Leg Count: " << legCount << endl;
 
 		// Display details of each leg in the path
 		for (int i = 0; i < legCount; ++i) {
 			Legs[i].displayLeg();
 		}
+
+		cout << "Fare Classes:" << endl;
+		for (int i = 0; i < fareClassCount; ++i) {
+			fareClasses[i].displayDetailToPath();
+		}
 	}
 
+	void DisplayPathToConstraints(int i) {
+		cout << "Path Id:" << i+1 << endl;
+		cout << "To: " << to << endl;
+		cout << "From: " << from << endl;
+	}
 	// Function to get the value of 'to'
 	string getTo() const {
 		return to;
