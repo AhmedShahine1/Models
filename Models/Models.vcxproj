@@ -144,6 +144,7 @@
     <Text Include="FareClass.txt" />
     <Text Include="Leg.txt" />
     <Text Include="MeanDemand.txt" />
+    <Text Include="Output.txt" />
     <Text Include="Path.txt" />
     <Text Include="price.txt" />
   </ItemGroup>

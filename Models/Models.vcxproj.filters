@@ -48,5 +48,6 @@
     <Text Include="Capacity.txt" />
     <Text Include="cost.txt" />
     <Text Include="price.txt" />
+    <Text Include="Output.txt" />
   </ItemGroup>
 </Project>

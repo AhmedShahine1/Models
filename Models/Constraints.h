@@ -46,13 +46,22 @@ public:
 	{
 		for (int i = 0; i < numOfLegsOfTypeM; ++i)
 		{
+			string Output;
 			for (int j = 0; j < numberofAirCrafts; ++j)
 			{
-				cout << "X[" << AirCrafts[j].getType() << "]" << "[" << legsOfTypeM[i].getFrom() << "-" << legsOfTypeM[i].getTo() << "]" << " + ";
 				if (j == numberofAirCrafts - 1)
-					cout << "X[" << AirCrafts[j].getType() << "]" << "[" << legsOfTypeM[i].getFrom() << "-" << legsOfTypeM[i].getTo() << "]";
+				{
+					cout << "X[" << AirCrafts[j].getType() << "]" << "[" << legsOfTypeM[i].getFrom() << "-" << legsOfTypeM[i].getTo() << "] = 1";
+					Output += "X[" + AirCrafts[j].getType() + "]" + "[" + legsOfTypeM[i].getFrom() + "-" + legsOfTypeM[i].getTo() + "] = 1";
+				}
+				else
+				{
+					cout << "X[" << AirCrafts[j].getType() << "]" << "[" << legsOfTypeM[i].getFrom() << "-" << legsOfTypeM[i].getTo() << "]" << " + ";
+					Output += "X[" + AirCrafts[j].getType() + "]" + "[" + legsOfTypeM[i].getFrom() + "-" + legsOfTypeM[i].getTo() + "]" + " + ";
+				}
 			}
 			cout << endl << "----------------------------------------" << endl;
+			WriteData(Output);
 		}
 	}
 
@@ -60,37 +69,49 @@ public:
 	{
 		for (int i = 0; i < numOfLegsOfTypeO; ++i)
 		{
+			string Output;
 			for (int j = 0; j < numberofAirCrafts; ++j)
 			{
-				cout << "X[" << AirCrafts[j].getType() << "]" << "[" << legsOfTypeO[i].getFrom() << "-" << legsOfTypeO[i].getTo() << "]" << " + ";
 				if (j == numberofAirCrafts - 1)
-					cout << "X[" << AirCrafts[j].getType() << "]" << "[" << legsOfTypeO[i].getFrom() << "-" << legsOfTypeO[i].getTo() << "]";
+				{
+					cout << "X[" << AirCrafts[j].getType() << "]" << "[" << legsOfTypeO[i].getFrom() << "-" << legsOfTypeO[i].getTo() << "] <= 1";
+					Output += "X[" + AirCrafts[j].getType() + "]" + "[" + legsOfTypeO[i].getFrom() + "-" + legsOfTypeO[i].getTo() + "] <= 1";
+				}
+				else
+				{
+					cout << "X[" << AirCrafts[j].getType() << "]" << "[" << legsOfTypeO[i].getFrom() << "-" << legsOfTypeO[i].getTo() << "]" << " + ";
+					Output += "X[" + AirCrafts[j].getType() + "]" + "[" + legsOfTypeO[i].getFrom() + "-" + legsOfTypeO[i].getTo() + "]" + " + ";
+				}
 			}
+			WriteData(Output);
 			cout << endl << "----------------------------------------" << endl;
 		}
 	}
 
+
 	void Consrtaint_5() {
 		for (int i = 0; i < numOfPathsWithLegO; i++)
 		{
-			for (int j = 0; j < numberofAirCrafts; j++) {
+			string Output;
+			for (int j = 0; j < numOfLegsOfTypeO; j++) {
 
-				for (int x = 0; x < numOfLegsOfTypeO; x++)
+				for (int x = 0; x < numberofAirCrafts; x++)
 				{
-					cout << "Z (From:" << pathsWithTypeO[i].getFrom() << " ,To: " << pathsWithTypeO[i].getTo() << "),- ";
-
-					cout << "X (" << AirCrafts[j].getType() << "),";
-
-					if (x == numOfLegsOfTypeO - 1) {
-						cout << legsOfTypeO[x].getType();
-						cout << "]}" << endl;
+					cout << "Z (From:" << pathsWithTypeO[i].getFrom() << " ,To: " << pathsWithTypeO[i].getTo() << ") - " << "X (" << AirCrafts[x].getType() << "),";
+					Output += "Z (From:" + pathsWithTypeO[i].getFrom() + " ,To: " + pathsWithTypeO[i].getTo() + ") - " + "X (" + AirCrafts[x].getType() + "),";
+					if (x == numberofAirCrafts - 1) {
+						cout << legsOfTypeO[j].getFrom() << ", " << legsOfTypeO[j].getTo();
+						cout << "]} <= 0" << endl;
+						Output += legsOfTypeO[j].getFrom() + ", " + legsOfTypeO[j].getTo() + "]} <= 0";
 					}
 					else {
-						cout << legsOfTypeO[x].getType() << "+";
-						cout << "]}" << endl;
+						cout << legsOfTypeO[j].getFrom() << ", " << legsOfTypeO[j].getTo() << "+";
+						cout << "]} <= 0" << endl;
+						Output += legsOfTypeO[j].getFrom() + ", " + legsOfTypeO[j].getTo() + "+" + "]} <= 0";
 					}
 				}
 			}
+			WriteData(Output);
 			cout << endl << "----------------------------------------" << endl;
 		}
 	}
@@ -100,24 +121,29 @@ public:
 
 		for (int optional_path_repeater = 0; optional_path_repeater < numOfPathsWithLegO; optional_path_repeater++)
 		{
-			cout << "Z ( From: " << pathsWithTypeO[optional_path_repeater].getFrom()<<" To: "<< pathsWithTypeO[optional_path_repeater].getTo() << ")" << "-";
-
+			string Output;
+			cout << "Z ( From: " << pathsWithTypeO[optional_path_repeater].getFrom() << " To: " << pathsWithTypeO[optional_path_repeater].getTo() << ")" << "-";
+			Output += "Z ( From: " + pathsWithTypeO[optional_path_repeater].getFrom() + " To: " + pathsWithTypeO[optional_path_repeater].getTo() + ")" + "-";
 			for (int aircrafts = 0; aircrafts < numberofAirCrafts; aircrafts++)
 			{
 				for (int optional_legs = 0; optional_legs < numOfLegsOfTypeO; optional_legs++)
 				{
-					cout << " X ( " << AirCrafts[aircrafts].getType() << " , From: " << legsOfTypeO[optional_legs].getFrom()<<" To: "<< legsOfTypeO[optional_legs].getTo() << " )";
-
+					cout << " X ( " << AirCrafts[aircrafts].getType() << " , From: " << legsOfTypeO[optional_legs].getFrom() << " To: " << legsOfTypeO[optional_legs].getTo() << " )";
+					Output += " X ( " + AirCrafts[aircrafts].getType() + " , From: " + legsOfTypeO[optional_legs].getFrom() + " To: " + legsOfTypeO[optional_legs].getTo() + " )";
 					if (aircrafts != (numberofAirCrafts - 1))
+					{
 						cout << " + ";
-
+						Output += " + ";
+					}
 				}//end last loop 
 
 			}// end second loop 
 
 
-			cout << " >= " << " 1 - | L ( From: " << pathsWithTypeO[optional_path_repeater].getFrom()<<" To: "<< pathsWithTypeO[optional_path_repeater].getTo() << " ) | " << endl;
+			cout << " >= " << " 1 - | L ( From: " << pathsWithTypeO[optional_path_repeater].getFrom() << " To: " << pathsWithTypeO[optional_path_repeater].getTo() << " ) | " << endl;
+			Output += " >= 1 - | L ( From: " + pathsWithTypeO[optional_path_repeater].getFrom() + " To: " + pathsWithTypeO[optional_path_repeater].getTo() + " ) | ";
 			cout << endl << "----------------------------------------" << endl;
+			WriteData(Output);
 		}//end first loop 
 
 	}//end of function
@@ -126,47 +152,60 @@ public:
 	{
 		for (int optional_legs_repeater = 0; optional_legs_repeater < numOfLegsOfTypeO; optional_legs_repeater++)
 		{
+			string Output;
 			for (int aircraft = 0; aircraft < numberofAirCrafts; aircraft++)
 			{
-				cout << "X ( " << AirCrafts[aircraft].getType() << " , Form: " << legsOfTypeO[optional_legs_repeater].getFrom()<<" To: "<< legsOfTypeO[optional_legs_repeater].getTo()
+				cout << "X ( " << AirCrafts[aircraft].getType() << " , Form: " << legsOfTypeO[optional_legs_repeater].getFrom() << " To: " << legsOfTypeO[optional_legs_repeater].getTo()
 					<< " ) ";
-
+				Output += "X ( " + AirCrafts[aircraft].getType() + " , Form: " + legsOfTypeO[optional_legs_repeater].getFrom() + " To: " + legsOfTypeO[optional_legs_repeater].getTo() + " ) ";
 				// print the + for the summation equation 
 				if (aircraft != (numberofAirCrafts - 1))
+				{
 					cout << " + ";
+					Output += " + ";
+				}
 			}
 
 
 			cout << " <= ";
-
-				for (int optional_paths_repeater = 0; optional_paths_repeater < numOfPathsWithLegO; ++optional_paths_repeater)
-				{
-					cout << "Z ( From: " << pathsWithTypeO[optional_paths_repeater].getFrom() << " To: " << pathsWithTypeO[optional_paths_repeater].getTo() << ")";
-					if (optional_paths_repeater != (numOfPathsWithLegO - 1))
-						cout << "+";
-
+			Output += " <= ";
+			for (int optional_paths_repeater = 0; optional_paths_repeater < numOfPathsWithLegO; ++optional_paths_repeater)
+			{
+				cout << "Z ( From: " << pathsWithTypeO[optional_paths_repeater].getFrom() << " To: " << pathsWithTypeO[optional_paths_repeater].getTo() << ")";
+				Output += "Z ( From: " + pathsWithTypeO[optional_paths_repeater].getFrom() + " To: " + pathsWithTypeO[optional_paths_repeater].getTo() + ")";
+				if (optional_paths_repeater != (numOfPathsWithLegO - 1)) {
+					cout << "+";
+					Output += "+";
 				}
-				cout << endl << "----------------------------------------" << endl;
+
+			}
+			WriteData(Output);
+			cout << endl << "----------------------------------------" << endl;
 		}
 	}
 
 	void Consrtaint_8() {
 		for (int i = 0; i < numberOfLegs; i++)
 		{
+			string Output;
 			for (int j = 0; j < numberOfFareClasses; j++)
 			{
 				for (int K = 0; K < numPathsthatContainLeg[i]; K++)
 				{
 					if (K == 0) {
 						cout << "[";
+						Output = "[";
 					}
 					cout << "{Passengers( in path: (" << PathsthatContainLeg[i][K] << ") ,in Fareclass(" << FareClasses[j] << ")}";
+					Output += "{Passengers( in path: (" + PathsthatContainLeg[i][K] + ") ,in Fareclass(" + FareClasses[j] + ")}";
 					if (K != numPathsthatContainLeg[i] - 1)
 					{
 						cout << " + ";
+						Output += " + ";
 					}
 					else {
 						cout << "] <= ";
+						Output += "] <= ";
 					}
 				}
 
@@ -174,45 +213,58 @@ public:
 				{
 					if (s == 0) {
 						cout << "[";
+						Output += "[";
 					}
 					cout << "[X (Assign Aircrafts Type: " << AirCrafts[s].getType() << ", To Leg: " << Legs[i].getFrom() << ", " << Legs[i].getTo() << ") * ( Min{ (Capacity in Fare Class: " << FareClasses[j] << ", in Aircraft Type: " << AirCrafts[s].getType() << ") , ";
+					Output += "[X (Assign Aircrafts Type: " + AirCrafts[s].getType() + ", To Leg: " + Legs[i].getFrom() + ", " + Legs[i].getTo() + ") * ( Min{ (Capacity in Fare Class: " + FareClasses[j] + ", in Aircraft Type: " + AirCrafts[s].getType() + ") , ";
 					for (int K = 0; K < numPathsthatContainLeg[i]; K++)
 					{
 						if (K == 0) {
 							cout << "(";
 						}
 						cout << "Mean Demand( in path: (" << PathsthatContainLeg[i][K] << ") ,in Fareclass(" << FareClasses[j] << ")";
+						Output += "Mean Demand( in path: (" + PathsthatContainLeg[i][K] + ") ,in Fareclass(" + FareClasses[j] + ")";
 						if (K != numPathsthatContainLeg[i] - 1)
 						{
 							cout << " + ";
+							Output += " + ";
 						}
 						else {
 							cout << ") }]" << endl;
+							Output += ") }]";
 						}
 					}
 					if (s != numberofAirCrafts - 1)
 					{
 						cout << " + ";
+						Output += " + ";
 					}
 					else {
 						cout << endl;
+						Output += "";
 					}
 				}
 			}
 			cout << endl << "----------------------------------------" << endl;
+			WriteData(Output);
 		}
 	}
 
 	void Consrtaint_9() {
 		for (int i = 0; i < numOfPathsWithLegO; i++)
 		{
+			string Output;
 			for (int j = 0; j < numberOfFareClasses; j++) {
 				cout << "passengers(From: "<< pathsWithTypeO[i].getFrom()<<" ,To: "<< pathsWithTypeO[i].getTo()<<" ,Fare Class: "<<FareClasses[j]<<") <= Min{Mean Demand(From: " << pathsWithTypeO[i].getFrom() << " ,To: " << pathsWithTypeO[i].getTo() << " ,Fare Class: " << FareClasses[j]<<"),Max Cap[";
+				Output = "passengers(From: " + pathsWithTypeO[i].getFrom() + " ,To: " + pathsWithTypeO[i].getTo() + " ,Fare Class: " + FareClasses[j] + ") <= Min{Mean Demand(From: " + pathsWithTypeO[i].getFrom() + " ,To: " + pathsWithTypeO[i].getTo() + " ,Fare Class: " + FareClasses[j] + "),Max Cap[";
 				for (int x = 0; x < numberofAirCrafts; x++)
 				{
 					cout << "Cap(" << AirCrafts[x].getType() << ","<<FareClasses[j]<<"), ";
+					Output += "Cap(" + AirCrafts[x].getType() + "," + FareClasses[j] + "), ";
 				}
 				cout << "]} * Z (From: " << pathsWithTypeO[i].getFrom() << " ,To: " << pathsWithTypeO[i].getTo() << ")" << endl;
+				Output += "]} * Z (From: " + pathsWithTypeO[i].getFrom() + " ,To: " + pathsWithTypeO[i].getTo() + ")";
+				WriteData(Output);
 			}
 			cout << endl << "----------------------------------------" << endl;
 		}
@@ -221,12 +273,25 @@ public:
 	void Consrtaint_10() {
 		for (int i = 0; i < numberOfPaths; i++)
 		{
+			string Output;
 			for (int j = 0; j < numberOfFareClasses; j++) {
-				cout << "passengers(From: " << Paths[i].getFrom() << " ,To: " << Paths[i].getTo() << " ,Fare Class: " << FareClasses[j] << ") <=  Demand " << Paths[i].getFrom() << " ,To: " << Paths[i].getTo() << " ,Fare Class: " << FareClasses[j] << ")";
-				cout << "]}" << endl;
+				cout << "passengers(From: " << Paths[i].getFrom() << " ,To: " << Paths[i].getTo() << " ,Fare Class: " << FareClasses[j] << ") <=  [Demand (" << Paths[i].getFrom() << " ,To: " << Paths[i].getTo() << " ,Fare Class: " << FareClasses[j] << ")]}" << endl;
+				Output = "passengers(From: " + Paths[i].getFrom() + " ,To: " + Paths[i].getTo() + " ,Fare Class: " + FareClasses[j] + ") <=  [Demand (" + Paths[i].getFrom() + " ,To: " + Paths[i].getTo() + " ,Fare Class: " + FareClasses[j] + ")]}";
+				WriteData(Output);
 			}
 			cout << endl << "----------------------------------------" << endl;
 		}
+	}
+
+	void WriteData(string data) {
+		ofstream outputFile("Output.txt", ios::app);
+
+		// Check if the file is successfully opened
+		if (!outputFile.is_open()) {
+			cout << "Error opening the file!" << endl;
+		}
+		outputFile << data << endl;
+		outputFile.close();
 	}
 };
 

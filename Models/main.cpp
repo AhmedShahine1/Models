@@ -337,20 +337,28 @@ int main() {
 
         Constraints constrain = Constraints(PathsthatContainLeg, numPathsthatContainLeg, numOfAircraft, numOfPaths, numOfFlightLegs, numOfFareClasses, numOfLegsOfTypeO, numOfLegsOfTypeM, numOfPathsWithLegO, numOfPathsWithLegM, legs, Paths, aircraftArray, NameFareClasses, Caj, Fph, pathsWithTypeM, pathsWithTypeO, legsOfTypeM, legsOfTypeO);
         cout << endl << "Contrain 1:" << endl;
+        constrain.WriteData("Constrain 1:");
         constrain.Consrtaint_1();
         cout << endl << "Contrain 2:" << endl;
+        constrain.WriteData("Constrain 2:");
         constrain.Consrtaint_2();
         cout << endl << "Contrain 5:" << endl;
+        constrain.WriteData("Constrain 5:");
         constrain.Consrtaint_5();
         cout << endl << "Contrain 6:" << endl;
+        constrain.WriteData("Constrain 6:");
         constrain.Consrtaint_6();
         cout << endl << "Contrain 7:" << endl;
+        constrain.WriteData("Constrain 7:");
         constrain.Consrtaint_7();
         cout << endl << "Contrain 8:" << endl;
+        constrain.WriteData("Constrain 8:");
         constrain.Consrtaint_8();
         cout << endl << "Contrain 9:" << endl;
+        constrain.WriteData("Constrain 9:");
         constrain.Consrtaint_9();
         cout << endl << "Contrain 10:" << endl;
+        constrain.WriteData("Constrain 10:");
         constrain.Consrtaint_10();
     }
     else
