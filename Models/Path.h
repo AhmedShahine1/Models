@@ -78,7 +78,7 @@ public:
 		return from;
 	}
 
-	// Function to check if the path has at least one leg of type "m"
+	// Function to checK if the path has at least one leg of type "m"
 	bool hasLegOfTypeM() const {
 		for (int i = 0; i < legCount; ++i) {
 			if (Legs[i].type == "Mandatory") {
@@ -87,7 +87,7 @@ public:
 		}
 		return false;
 	}
-	// Function to check if the path has at least one leg of type "O"
+	// Function to checK if the path has at least one leg of type "O"
 	bool hasLegOfTypeO() const {
 		for (int i = 0; i < legCount; ++i) {
 			if (Legs[i].type == "Optional") {
@@ -95,6 +95,16 @@ public:
 			}
 		}
 		return false;
+	}
+
+	// Function to checK if a specific to and from pair exists in the legs of the path
+	bool hasLeg(string checKTo, string checKFrom) {
+		for (int i = 0; i < legCount; ++i) {
+			if (Legs[i].hasToFrom(checKTo, checKFrom)) {
+				return true;  // Found a matching leg
+			}
+		}
+		return false;  // No matching leg found
 	}
 };
 

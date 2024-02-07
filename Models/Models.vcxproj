@@ -137,6 +137,16 @@
     <ClInclude Include="Leg.h" />
     <ClInclude Include="Path.h" />
   </ItemGroup>
+  <ItemGroup>
+    <Text Include="AirCraft.txt" />
+    <Text Include="Capacity.txt" />
+    <Text Include="cost.txt" />
+    <Text Include="FareClass.txt" />
+    <Text Include="Leg.txt" />
+    <Text Include="MeanDemand.txt" />
+    <Text Include="Path.txt" />
+    <Text Include="price.txt" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

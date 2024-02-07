@@ -39,4 +39,14 @@
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
+  <ItemGroup>
+    <Text Include="AirCraft.txt" />
+    <Text Include="FareClass.txt" />
+    <Text Include="Leg.txt" />
+    <Text Include="Path.txt" />
+    <Text Include="MeanDemand.txt" />
+    <Text Include="Capacity.txt" />
+    <Text Include="cost.txt" />
+    <Text Include="price.txt" />
+  </ItemGroup>
 </Project>

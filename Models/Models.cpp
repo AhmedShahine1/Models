@@ -66,13 +66,13 @@
 //
 //
 //
-//	//Nodes : city in network of Aircraft type a 
+//	//Nodes : city in networK of Aircraft type a 
 //	int numOfNodes;
 //
 //	string** NodesOfAircraft = new string * [numOfAircraft]; //indexed by (n) and a ==> AT
 //
 //	for (int a = 0; a < numOfAircraft; a++) {
-//		cout << "Input Nodes in aircraft type [" << AircraftsType[a] << "] network Number : ";
+//		cout << "Input Nodes in aircraft type [" << AircraftsType[a] << "] networK Number : ";
 //		cin >> numOfNodes;
 //		cout << endl;
 //		NodesOfAircraft[a] = new string[numOfNodes];
@@ -84,7 +84,7 @@
 //	for (int a = 0; a < numOfAircraft; a++) {
 //		for (int n = 0; n < numOfNodes; n++)
 //		{
-//			cout << "Input nodes in netwok of type [" << AircraftsType[a] << "][" << n + 1 << "] : ";
+//			cout << "Input nodes in netwoK of type [" << AircraftsType[a] << "][" << n + 1 << "] : ";
 //			cin >> NodesOfAircraft[a][n];
 //			cout << endl;
 //		}

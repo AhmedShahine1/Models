@@ -46,5 +46,14 @@ public:
 		return type;
 	}
 
+	// Function to checK if the given to and from values match the leg
+	bool hasToFrom(string checKTo, string checKFrom) {
+		return (to == checKTo && from == checKFrom);
+	}
+
+	// Function to check if the leg has a specific type
+	bool hasType(string checkType) const {
+		return (type == checkType);
+	}
 };
 
