@@ -353,7 +353,7 @@ int main() {
         constrain.Consrtaint_7();
         cout << endl << "Contrain 8:" << endl;
         constrain.WriteData("Constrain 8:");
-        constrain.Consrtaint_8();
+        constrain.Constraint_8();
         cout << endl << "Contrain 9:" << endl;
         constrain.WriteData("Constrain 9:");
         constrain.Consrtaint_9();
@@ -585,7 +585,7 @@ int main() {
         cout << endl << "Contrain 7:" << endl;
         constrain.Consrtaint_7();
         cout << endl << "Contrain 8:" << endl;
-        constrain.Consrtaint_8();
+        constrain.Constraint_8();
         cout << endl << "Contrain 9:" << endl;
         constrain.Consrtaint_9();
         cout << endl << "Contrain 10:" << endl;

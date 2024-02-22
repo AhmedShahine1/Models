@@ -1,11 +1,10 @@
 #pragma once
 class FareClass
 {
-private:
+public:
 	string name;
 	int Capah;
 	int Mph;
-public:
 	// Constructor with default parameter values
 	FareClass(string name = "", int Capah = 0, int Mph = 0)
 		: name(name), Capah(Capah), Mph(Mph) {}

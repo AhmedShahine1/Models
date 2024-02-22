@@ -15,7 +15,7 @@ public:
 	int legCount;
 	FareClass* fareClasses;
 	int fareClassCount;
-	Path() : Legs(nullptr), to(""), from(""), fareClasses(nullptr){}
+	Path() : Legs(nullptr), to(""), from(""), fareClasses(nullptr) {}
 
 	Path(string to, string from, int legCount, int fareClassCount)
 	{
@@ -32,7 +32,7 @@ public:
 	}
 
 	// Function to add a leg to the path
-	void addLeg( Leg* newLeg) {
+	void addLeg(Leg* newLeg) {
 		for (int i = 0; i < legCount; ++i) {
 			Legs[i] = newLeg[i];
 		}
@@ -46,7 +46,7 @@ public:
 	}
 
 	// Function to display path details
-	void displayPath(){
+	void displayPath() {
 		cout << "Path Details:" << endl;
 		cout << "To: " << to << endl;
 		cout << "From: " << from << endl;
@@ -64,7 +64,7 @@ public:
 	}
 
 	void DisplayPathToConstraints(int i) {
-		cout << "Path Id:" << i+1 << endl;
+		cout << "Path Id:" << i + 1 << endl;
 		cout << "To: " << to << endl;
 		cout << "From: " << from << endl;
 	}
@@ -99,12 +99,12 @@ public:
 
 	// Function to checK if a specific to and from pair exists in the legs of the path
 	bool hasLeg(string checKTo, string checKFrom) {
-		for (int i = 0; i < legCount; ++i) {
+		for (int i = 0; i < legCount; i++) {
 			if (Legs[i].hasToFrom(checKTo, checKFrom)) {
 				return true;  // Found a matching leg
 			}
 		}
 		return false;  // No matching leg found
 	}
-};
 
+};

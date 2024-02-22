@@ -1,4 +1,11 @@
 #pragma once
+#include <iostream>
+#include "AirCraft.h"
+#include "Leg.h"
+#include "FareClass.h"
+#include "Path.h"
+
+using namespace std;
 class Constraints
 {
 public:
@@ -184,72 +191,83 @@ public:
 		}
 	}
 
-	void Consrtaint_8() {
-		for (int i = 0; i < numberOfLegs; i++)
-		{
-			string Output;
+
+	void Constraint_8() {
+		for (int i = 0; i < numberOfLegs; i++) {
+
 			for (int j = 0; j < numberOfFareClasses; j++)
 			{
-				for (int K = 0; K < numPathsthatContainLeg[i]; K++)
+				string Output = "[";
+				for (int p = 0; p < numberOfPaths; p++)
 				{
-					if (K == 0) {
-						cout << "[";
-						Output = "[";
-					}
-					cout << "{Passengers( in path: (" << PathsthatContainLeg[i][K] << ") ,in Fareclass(" << FareClasses[j] << ")}";
-					Output += "{Passengers( in path: (" + PathsthatContainLeg[i][K] + ") ,in Fareclass(" + FareClasses[j] + ")}";
-					if (K != numPathsthatContainLeg[i] - 1)
+					if (Paths[p].hasLeg(Legs[i].getTo(), Legs[i].getFrom()))
 					{
-						cout << " + ";
-						Output += " + ";
+						if (p == 0) {
+							Output = "[";
+						}
+						Output += "{Passengers( in path: (" + Paths[p].getTo() + ", " + Paths[p].getFrom() + ") ,in Fareclass(" + Paths[p].fareClasses[j].name + ")}";
+						if (p != numberOfPaths - 1 && Paths[p+1].hasLeg(Legs[i].getTo(), Legs[i].getFrom()))
+						{
+							Output += " + ";
+						}
+						else if (p == numberOfPaths - 1){
+							Output += "] <= ";
+						}
 					}
 					else {
-						cout << "] <= ";
-						Output += "] <= ";
+						if (p != 0 && p != numberOfPaths - 1 && Paths[p + 1].hasLeg(Legs[i].getTo(), Legs[i].getFrom()) && Output != "[")
+						{
+							Output += " + ";
+						}
+						else if (p == numberOfPaths - 1) {
+							Output += "] <= ";
+						}
 					}
 				}
+
 
 				for (int s = 0; s < numberofAirCrafts; s++)
 				{
 					if (s == 0) {
-						cout << "[";
 						Output += "[";
 					}
-					cout << "[X (Assign Aircrafts Type: " << AirCrafts[s].getType() << ", To Leg: " << Legs[i].getFrom() << ", " << Legs[i].getTo() << ") * ( Min{ (Capacity in Fare Class: " << FareClasses[j] << ", in Aircraft Type: " << AirCrafts[s].getType() << ") , ";
-					Output += "[X (Assign Aircrafts Type: " + AirCrafts[s].getType() + ", To Leg: " + Legs[i].getFrom() + ", " + Legs[i].getTo() + ") * ( Min{ (Capacity in Fare Class: " + FareClasses[j] + ", in Aircraft Type: " + AirCrafts[s].getType() + ") , ";
-					for (int K = 0; K < numPathsthatContainLeg[i]; K++)
+					for (int p = 0; p < numberOfPaths; p++)
 					{
-						if (K == 0) {
-							cout << "(";
+						if (p == 0){
+							Output += "[X (Assign Aircrafts Type: " + AirCrafts[s].getType() + ", To Leg: " + Legs[i].getFrom() + ", " + Legs[i].getTo() + ") * ( Min{ (Capacity in Fare Class: " + Paths[p].fareClasses[j].name + ", in Aircraft Type: " + AirCrafts[s].getType() + ") , (";
 						}
-						cout << "Mean Demand( in path: (" << PathsthatContainLeg[i][K] << ") ,in Fareclass(" << FareClasses[j] << ")";
-						Output += "Mean Demand( in path: (" + PathsthatContainLeg[i][K] + ") ,in Fareclass(" + FareClasses[j] + ")";
-						if (K != numPathsthatContainLeg[i] - 1)
+						if (Paths[p].hasLeg(Legs[i].getTo(), Legs[i].getFrom()))
 						{
-							cout << " + ";
-							Output += " + ";
+							Output += "Mean Demand( in path: (" + Paths[p].getTo()+ ", "+ Paths[p].getFrom() + ") ,in Fareclass(" + Paths[p].fareClasses[j].name + ") +";
+							if (p == numberOfPaths - 1) {
+								Output = Output.substr(0, Output.size()-2);
+								Output += "] ";
+							}
 						}
-						else {
-							cout << ") }]" << endl;
-							Output += ") }]";
+						else
+						{
+							if (p == numberOfPaths - 1) {
+								Output = Output.substr(0, Output.size() - 2);
+								Output += ") }]";
+							}
 						}
 					}
 					if (s != numberofAirCrafts - 1)
 					{
-						cout << " + ";
+						
 						Output += " + ";
 					}
 					else {
-						cout << endl;
 						Output += "";
 					}
 				}
+				WriteData(Output);
+				cout << Output << endl;
+				cout << "----------------------------------------------------------------------------------------" << endl;
 			}
-			cout << endl << "----------------------------------------" << endl;
-			WriteData(Output);
+			
 		}
 	}
-
 	void Consrtaint_9() {
 		for (int i = 0; i < numOfPathsWithLegO; i++)
 		{
