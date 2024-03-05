@@ -6,8 +6,16 @@
 #include "Leg.h"
 #include "Constraints.h"
 #include "FareClass.h"
+#include "Cplex.h"
+#include"ilcplex/ilocplex.h"
+#include<chrono>
+
 
 using namespace std;
+typedef IloArray<IloNumVarArray> NumVar2D; // enables us to defien a 2-D decision varialbe
+typedef IloArray<NumVar2D> NumVar3D;
+
+#pragma region Function
 void displayAircraftDetails(AirCraft* aircraftArray, int numOfAircraft) {
     for (int i = 0; i < numOfAircraft; ++i) {
         cout << "\nAircraft " << i + 1 << " Details:" << endl;
@@ -19,7 +27,7 @@ void displayAircraftDetails(AirCraft* aircraftArray, int numOfAircraft) {
 void displayLegsDetails(Leg* legs, int numOfFlightLegs) {
     for (int K = 0; K < numOfFlightLegs; ++K) {
         cout << "\nFlight Legs Id: " << K + 1 << ", Details:" << endl;
-        legs[K].displayLeg();
+        legs[K].display();
     }
 }
 
@@ -27,7 +35,7 @@ void displayLegsDetails(Leg* legs, int numOfFlightLegs) {
 void displayPathsDetails(Path* paths, int numOfPaths) {
     for (int i = 0; i < numOfPaths; i++) {
         cout << "\nPath " << i + 1 << " Details:" << endl;
-        paths[i].displayPath();
+        paths[i].display();
     }
 }
 
@@ -88,8 +96,75 @@ Leg* getLegsByType(Leg* legs, int legCount, const string& targetType, int& numOf
     return legsOfType;
 }
 
+// Function to start system
+void System(string** PathsthatContainLeg, int* numPathsthatContainLeg, int numAirCrafts, int numPaths, int numLegs, int numFareClasses, int numOfLegsOfTypeO, int numOfLegsOfTypeM, int numOfPathsWithLegO, int numOfPathsWithLegM, Leg* Legs, Path* Paths, AirCraft* AirCrafts, string* FareClasses, Path* pathsWithTypeM, Path* pathsWithTypeO, Leg* legsOfTypeM, Leg* legsOfTypeO) {
+#pragma region System
+    system("cls");
+    while (true)
+    {
+        int Decision;
+        cout << "Enter 1 to write model or 2 to solve model or 3 to clear console or 4 to Exit :";
+        cin >> Decision;
+        if (Decision == 1) {
+            try
+            {
+                Constraints constrain = Constraints(PathsthatContainLeg, numPathsthatContainLeg, numAirCrafts, numPaths, numLegs, numFareClasses, numOfLegsOfTypeO, numOfLegsOfTypeM, numOfPathsWithLegO, numOfPathsWithLegM, Legs, Paths, AirCrafts, FareClasses, pathsWithTypeM, pathsWithTypeO, legsOfTypeM, legsOfTypeO);
+                cout << endl << "Contrain 1:" << endl;
+                constrain.WriteData("Constrain 1:");
+                constrain.Consrtaint_1();
+                cout << endl << "Contrain 2:" << endl;
+                constrain.WriteData("Constrain 2:");
+                constrain.Consrtaint_2();
+                cout << endl << "Contrain 5:" << endl;
+                constrain.WriteData("Constrain 5:");
+                constrain.Consrtaint_5();
+                cout << endl << "Contrain 6:" << endl;
+                constrain.WriteData("Constrain 6:");
+                constrain.Consrtaint_6();
+                cout << endl << "Contrain 7:" << endl;
+                constrain.WriteData("Constrain 7:");
+                constrain.Consrtaint_7();
+                cout << endl << "Contrain 8:" << endl;
+                constrain.WriteData("Constrain 8:");
+                constrain.Constraint_8();
+                cout << endl << "Contrain 9:" << endl;
+                constrain.WriteData("Constrain 9:");
+                constrain.Consrtaint_9();
+                cout << endl << "Contrain 10:" << endl;
+                constrain.WriteData("Constrain 10:");
+                constrain.Consrtaint_10();
+            }
+            catch (const exception&)
+            {
+                cout << endl << "!\tError in write model\t!" << endl;
+            }
+        }
+        else if (Decision == 2)
+        {
+            try
+            {
+
+            }
+            catch (const exception&)
+            {
+                cout << endl << "!\tError in solve model\t!" << endl;
+            }
+        }
+        else if (Decision == 3) {
+            system("cls");
+        }
+        else
+        {
+            break;
+        }
+    }
+#pragma endregion
+
+}
+#pragma endregion
+
 int main() {
-    #pragma region Problem Data
+#pragma region EnterData
     int readData = 0;
     cout << "Enter 1- To read data from file 2- To enter data: ";
     cin >> readData;
@@ -139,8 +214,6 @@ int main() {
 
         // TaKe input for the number of aircraft
         airCraftData >> numOfAircraft;
-        cout << "The number of Aircraft Type: " << numOfAircraft << endl;
-
         // Create a dynamic array of AirCraft objects
         AirCraft* aircraftArray = new AirCraft[numOfAircraft];
 
@@ -152,13 +225,10 @@ int main() {
 
             // TaKe input for each aircraft
             airCraftData >> type;
-            cout << "Aircraft [" << i + 1 << "]\nEnter Aircraft Type : " << type << endl;
 
             airCraftData >> numberAirCraft;
-            cout << "Enter Number of All Aircraft: " << numberAirCraft << endl;
 
             airCraftData >> numNodes;
-            cout << "Enter Number of Nodes: " << numNodes << endl;
 
             // Create AirCraft object and set values
             aircraftArray[i] = AirCraft(type, numberAirCraft, numNodes);
@@ -167,84 +237,66 @@ int main() {
             string* nodeValues = new string[numNodes];
             for (int j = 0; j < numNodes; ++j) {
                 airCraftData >> nodeValues[j];
-                cout << "Enter Node " << j + 1 << ": " << nodeValues[j] << endl;
             }
 
             // Set nodes values
-            aircraftArray[i].setNodesValues(nodeValues, numNodes);
-
+            aircraftArray[i].setNodes(nodeValues, numNodes);
         }
 
         // Flight Legs
         int numOfFlightLegs;
 
         LegData >> numOfFlightLegs;
-        cout << "Input Flight Legs Number : " << numOfFlightLegs << endl;
         Leg* legs = new Leg[numOfFlightLegs];
         string toLeg, fromLeg, typeLeg, toPath, fromPath;
         for (int i = 0; i < numOfFlightLegs; i++) {
             LegData >> fromLeg;
-            cout << "Input Flight Leg [" << i + 1 << "] From : " << fromLeg << endl;
             LegData >> toLeg;
-            cout << "Input Flight Leg [" << i + 1 << "] to: " << toLeg << endl;
             LegData >> typeLeg;
-            cout << "Input Type Of Legs(Mandatory or Optional) [" << i + 1 << "] : " << typeLeg << endl;
             legs[i] = Leg(toLeg, fromLeg, typeLeg);
         }
 
         // Fare Classes
         int numOfFareClasses;
         FareClassData >> numOfFareClasses;
-        cout << "Input Fare Class Number : " << numOfFareClasses << endl;
 
         string* NameFareClasses = new string[numOfFareClasses]; //indexed by (h)
         for (int h = 0; h < numOfFareClasses; h++)
         {
             FareClassData >> NameFareClasses[h];
-            cout << "Input Fare Class [" << h + 1 << "] Name : " << NameFareClasses[h] << endl;
         }
 
         // Paths
         int numOfPaths;
         int numOfLegsBelongsToPath;
         PathData >> numOfPaths;
-        cout << "Input All Paths Number : " << numOfPaths << endl;
         Path* Paths = new Path[numOfPaths];
         for (int i = 0; i < numOfPaths; i++) {
             PathData >> fromPath;
-            cout << "Input Path [" << i + 1 << "] From : " << fromPath << endl;
             PathData >> toPath;
-            cout << "Input Path [" << i + 1 << "] to: " << toPath << endl;
             PathData >> numOfLegsBelongsToPath;
-            cout << "Input Num Of Legs Belongs To Path [" << i << "] : " << numOfLegsBelongsToPath << endl;
             Paths[i] = Path(toPath, fromPath, numOfLegsBelongsToPath, numOfFareClasses);
-            cout << "Legs Belongs To Path [" << i << "] : " << endl;
             Leg* LegsToPath = new Leg[numOfLegsBelongsToPath];
             for (int j = 0; j < numOfLegsBelongsToPath; j++) {
                 char LegsBelongsToPath;
                 PathData >> LegsBelongsToPath;
-                cout << "Enter (Y) When do add new Legs or (N) When use old Legs: " << LegsBelongsToPath << endl;
                 if (toupper(LegsBelongsToPath) == 'Y') {
                     PathData >> fromLeg;
-                    cout << "Input Flight Leg From : " << fromLeg << endl;
                     PathData >> toLeg;
-                    cout<< "Input Flight Leg to: " << toLeg << endl;
                     PathData >> typeLeg;
-                    cout<< "Input Type Of Legs(Mandatory or Optional) : " << typeLeg << endl;
                     LegsToPath[j] = Leg(toLeg, fromLeg, typeLeg);
                 }
                 else {
                     int idleg;
                     PathData >> idleg;
-                    cout << "Enter Id Leg to add to this path:" << idleg << endl;
                     LegsToPath[j] = legs[idleg - 1];
                 }
             }
-            Paths[i].addLeg(LegsToPath);
+            Paths[i].setLegs(LegsToPath,numOfLegsBelongsToPath);
         }
 
         string** PathsthatContainLeg = new string * [numOfFlightLegs];
-        int* numPathsthatContainLeg = new int [numOfFlightLegs];
+        int* numPathsthatContainLeg = new int[numOfFlightLegs];
 
         for (int j = 0; j < numOfFlightLegs; j++)
         {
@@ -264,59 +316,51 @@ int main() {
                     if (Paths[i].hasLeg(legs[j].getTo(), legs[j].getFrom()))
                     {
                         PathsthatContainLeg[j][k] = Paths[i].getFrom() + " ," + Paths[i].getTo();
-                        cout << PathsthatContainLeg[j][k];
                     }
                 }
             }
         }
-
-
+        //Parameters
+        //set Mean Demand to FareClass in Path
         for (int i = 0; i < numOfPaths; i++) {
-            cout << "Enter Mean demand to Path:" << Paths[i].getFrom() << "," << Paths[i].getTo() << " When Fare Class:" << endl;
             FareClass* newFareClass = new FareClass[numOfFareClasses];
             for (int j = 0; j < numOfFareClasses; j++) {
                 int Mph = 0;
                 MeanDemandData >> Mph;
-                cout << "fare Class:" << NameFareClasses[j] << endl << "Enter Mean demand :" << Mph << endl;
-                newFareClass[j] = FareClass(NameFareClasses[j], 0, Mph);
+                newFareClass[j] = FareClass(NameFareClasses[j], 0, Mph, 0);
             }
-            Paths[i].addFareClass(newFareClass);
+            Paths[i].setFareClasses(newFareClass,numOfFareClasses);
         }
-
+        //set Capacity to fareClass in AirCraft
         for (int i = 0; i < numOfAircraft; i++) {
-            aircraftArray[i] = AirCraft(aircraftArray[i].getType(), aircraftArray[i].getNumberAirCraft(), aircraftArray[i].getNumNodes(), numOfFareClasses, aircraftArray[i].getNodes());
-            cout << "Enter Capacity to AirCraft:" << aircraftArray[i].getType() << " When Fare Class:" << endl;
             FareClass* newFareClass = new FareClass[numOfFareClasses];
             for (int j = 0; j < numOfFareClasses; j++) {
                 int Capah = 0;
                 CapacityData >> Capah;
                 Capah = Capah * aircraftArray[i].getNumberAirCraft();
-                cout << "fare Class:" << NameFareClasses[j] << endl << "All Capacity to aircraft:"<<Capah<<endl;
-                newFareClass[j] = FareClass(NameFareClasses[j], Capah, 0);
+                newFareClass[j] = FareClass(NameFareClasses[j], Capah, 0, 0);
             }
+            aircraftArray[i].setFareClasses(newFareClass,numOfFareClasses);
         }
-
-        //Parameters
-        int** Caj = new int* [numOfAircraft]; //cost of assigning fleet type a to leg j
-
-        for (int a = 0; a < numOfAircraft; a++) {
-            Caj[a] = new int[numOfFlightLegs];
+        //set cost of assigning fleet type a to leg j
+        for (int i = 0; i < numOfAircraft; i++) {
+            Leg* newlegs = legs;
             for (int j = 0; j < numOfFlightLegs; j++) {
-                CostData >> Caj[a][j];
-                cout << "Input cost of assigning fleet type [" << aircraftArray[a].getType() << "] to leg [" << legs[j].getFrom() << "," << legs[j].getTo() << "] : "<<Caj[a][j];
-                cout << endl;
+                int Cost = 0;
+                CostData >> Cost;
+                newlegs[j].setCost(Cost);
             }
+            aircraftArray[i].setLegs(newlegs, numOfFlightLegs);
         }
-
-        int** Fph = new int* [numOfPaths]; //estimated price for fare class h on path p
-
-        for (int p = 0; p < numOfPaths; p++) {
-            Fph[p] = new int[numOfFareClasses];
-            for (int h = 0; h < numOfFareClasses; h++) {
-                PriceData >> Fph[p][h];
-                cout << "Input estimated price for fare class [" << NameFareClasses[h] << "] on path [" << Paths[p].getFrom() << "," << Paths[p].getTo() << "] : "<<Fph[p][h];
-                cout << endl;
+        //set estimated price for fare class h on path p
+        for (int i = 0; i < numOfPaths; i++) {
+            FareClass* newFareClass = Paths[i].getFareClasses();
+            for (int j = 0; j < Paths[i].getFareClassCount(); j++) {
+                int Price = 0;
+                PriceData >> Price;
+                newFareClass[j].setPrice(Price);
             }
+            Paths[i].setFareClasses(newFareClass,Paths[i].getFareClassCount());
         }
 
         int numOfPathsWithLegM = 0;
@@ -335,31 +379,7 @@ int main() {
         // Get all legs with type "O"
         Leg* legsOfTypeO = getLegsByType(legs, numOfFlightLegs, "Optional", numOfLegsOfTypeO);
 
-        Constraints constrain = Constraints(PathsthatContainLeg, numPathsthatContainLeg, numOfAircraft, numOfPaths, numOfFlightLegs, numOfFareClasses, numOfLegsOfTypeO, numOfLegsOfTypeM, numOfPathsWithLegO, numOfPathsWithLegM, legs, Paths, aircraftArray, NameFareClasses, Caj, Fph, pathsWithTypeM, pathsWithTypeO, legsOfTypeM, legsOfTypeO);
-        cout << endl << "Contrain 1:" << endl;
-        constrain.WriteData("Constrain 1:");
-        constrain.Consrtaint_1();
-        cout << endl << "Contrain 2:" << endl;
-        constrain.WriteData("Constrain 2:");
-        constrain.Consrtaint_2();
-        cout << endl << "Contrain 5:" << endl;
-        constrain.WriteData("Constrain 5:");
-        constrain.Consrtaint_5();
-        cout << endl << "Contrain 6:" << endl;
-        constrain.WriteData("Constrain 6:");
-        constrain.Consrtaint_6();
-        cout << endl << "Contrain 7:" << endl;
-        constrain.WriteData("Constrain 7:");
-        constrain.Consrtaint_7();
-        cout << endl << "Contrain 8:" << endl;
-        constrain.WriteData("Constrain 8:");
-        constrain.Constraint_8();
-        cout << endl << "Contrain 9:" << endl;
-        constrain.WriteData("Constrain 9:");
-        constrain.Consrtaint_9();
-        cout << endl << "Contrain 10:" << endl;
-        constrain.WriteData("Constrain 10:");
-        constrain.Consrtaint_10();
+        System(PathsthatContainLeg, numPathsthatContainLeg, numOfAircraft, numOfPaths, numOfFlightLegs, numOfFareClasses, numOfLegsOfTypeO, numOfLegsOfTypeM, numOfPathsWithLegO, numOfPathsWithLegM, legs, Paths, aircraftArray, NameFareClasses, pathsWithTypeM, pathsWithTypeO, legsOfTypeM, legsOfTypeO);
     }
     else
     {
@@ -400,7 +420,7 @@ int main() {
             }
 
             // Set nodes values
-            aircraftArray[i].setNodesValues(nodeValues, numNodes);
+            aircraftArray[i].setNodes(nodeValues, numNodes);
 
         }
 
@@ -479,7 +499,7 @@ int main() {
                     LegsToPath[j] = legs[idleg - 1];
                 }
             }
-            Paths[i].addLeg(LegsToPath);
+            Paths[i].setLegs(LegsToPath,numOfLegsBelongsToPath);
         }
 
         string** PathsthatContainLeg = new string * [numOfFlightLegs];
@@ -508,53 +528,53 @@ int main() {
                 }
             }
         }
-
+        //Parameters
+        //set Mean Demand to FareClass in Path
         for (int i = 0; i < numOfPaths; i++) {
             cout << "Enter Mean demand to Path:" << Paths[i].getFrom() << "," << Paths[i].getTo() << " When Fare Class:" << endl;
             FareClass* newFareClass = new FareClass[numOfFareClasses];
             for (int j = 0; j < numOfFareClasses; j++) {
-                cout << "fare Class:" << NameFareClasses[j] << endl << "Enter Mean demand :";
                 int Mph = 0;
+                cout << "fare Class:" << NameFareClasses[j] << endl << "Enter Mean demand :";
                 cin >> Mph;
-                newFareClass[j] = FareClass(NameFareClasses[j], 0, Mph);
+                newFareClass[j] = FareClass(NameFareClasses[j], 0, Mph, 0);
             }
-            Paths[i].addFareClass(newFareClass);
+            Paths[i].setFareClasses(newFareClass, numOfFareClasses);
         }
-
+        //set Capacity to fareClass in AirCraft
         for (int i = 0; i < numOfAircraft; i++) {
-            aircraftArray[i] = AirCraft(aircraftArray[i].getType(), aircraftArray[i].getNumberAirCraft(), aircraftArray[i].getNumNodes(), numOfFareClasses, aircraftArray[i].getNodes());
-            cout << "Enter Capacity to AirCraft:" << aircraftArray[i].getType() << " When Fare Class:" << endl;
             FareClass* newFareClass = new FareClass[numOfFareClasses];
+            cout << "Enter Capacity to AirCraft:" << aircraftArray[i].getType() << " When Fare Class:" << endl;
             for (int j = 0; j < numOfFareClasses; j++) {
-                cout << "fare Class:" << NameFareClasses[j] << endl << "Enter Capacity :";
                 int Capah = 0;
+                cout << "fare Class:" << NameFareClasses[j] << endl << "Enter Capacity :";
                 cin >> Capah;
                 Capah = Capah * aircraftArray[i].getNumberAirCraft();
-                newFareClass[j] = FareClass(NameFareClasses[j], Capah, 0);
+                newFareClass[j] = FareClass(NameFareClasses[j], Capah, 0, 0);
             }
+            aircraftArray[i].setFareClasses(newFareClass, numOfFareClasses);
         }
-
-        //Parameters
-        int** Caj = new int* [numOfAircraft]; //cost of assigning fleet type a to leg j
-
-        for (int a = 0; a < numOfAircraft; a++) {
-            Caj[a] = new int[numOfFlightLegs];
+        //set cost of assigning fleet type a to leg j
+        for (int i = 0; i < numOfAircraft; i++) {
+            Leg* newlegs = legs;
             for (int j = 0; j < numOfFlightLegs; j++) {
-                cout << "Input cost of assigning fleet type [" << aircraftArray[a].getType() << "] to leg [" << legs[j].getFrom() << "," << legs[j].getTo() << "] : ";
-                cin >> Caj[a][j];
-                cout << endl;
+                int Cost = 0;
+                cout << "Input cost of assigning fleet type [" << aircraftArray[i].getType() << "] to leg [" << legs[j].getFrom() << "," << legs[j].getTo() << "] : ";
+                cin >> Cost;
+                newlegs[j].setCost(Cost);
             }
+            aircraftArray[i].setLegs(newlegs, numOfFlightLegs);
         }
-
-        int** Fph = new int* [numOfPaths]; //estimated price for fare class h on path p
-
-        for (int p = 0; p < numOfPaths; p++) {
-            Fph[p] = new int[numOfFareClasses];
-            for (int h = 0; h < numOfFareClasses; h++) {
-                cout << "Input estimated price for fare class [" << NameFareClasses[h] << "] on path [" << Paths[p].getFrom() << "," << Paths[p].getTo() << "] : ";
-                cin >> Fph[p][h];
-                cout << endl;
+        //set estimated price for fare class h on path p
+        for (int i = 0; i < numOfPaths; i++) {
+            FareClass* newFareClass = Paths[i].getFareClasses();
+            for (int j = 0; j < Paths[i].getFareClassCount(); j++) {
+                int Price = 0;
+                cout << "Input estimated price for fare class [" << NameFareClasses[j] << "] on path [" << Paths[i].getFrom() << "," << Paths[i].getTo() << "] : ";
+                cin >> Price;
+                newFareClass[j].setPrice(Price);
             }
+            Paths[i].setFareClasses(newFareClass, Paths[i].getFareClassCount());
         }
 
         int numOfPathsWithLegM = 0;
@@ -572,28 +592,8 @@ int main() {
         int numOfLegsOfTypeO = 0;
         // Get all legs with type "O"
         Leg* legsOfTypeO = getLegsByType(legs, numOfFlightLegs, "Optional", numOfLegsOfTypeO);
-
-        Constraints constrain = Constraints(PathsthatContainLeg, numPathsthatContainLeg, numOfAircraft, numOfPaths, numOfFlightLegs, numOfFareClasses, numOfLegsOfTypeO, numOfLegsOfTypeM, numOfPathsWithLegO, numOfPathsWithLegM, legs, Paths, aircraftArray, NameFareClasses, Caj, Fph, pathsWithTypeM, pathsWithTypeO, legsOfTypeM, legsOfTypeO);
-        cout << endl << "Contrain 1:" << endl;
-        constrain.Consrtaint_1();
-        cout << endl << "Contrain 2:" << endl;
-        constrain.Consrtaint_2();
-        cout << endl << "Contrain 5:" << endl;
-        constrain.Consrtaint_5();
-        cout << endl << "Contrain 6:" << endl;
-        constrain.Consrtaint_6();
-        cout << endl << "Contrain 7:" << endl;
-        constrain.Consrtaint_7();
-        cout << endl << "Contrain 8:" << endl;
-        constrain.Constraint_8();
-        cout << endl << "Contrain 9:" << endl;
-        constrain.Consrtaint_9();
-        cout << endl << "Contrain 10:" << endl;
-        constrain.Consrtaint_10();
+        System(PathsthatContainLeg, numPathsthatContainLeg, numOfAircraft, numOfPaths, numOfFlightLegs, numOfFareClasses, numOfLegsOfTypeO, numOfLegsOfTypeM, numOfPathsWithLegO, numOfPathsWithLegM, legs, Paths, aircraftArray, NameFareClasses, pathsWithTypeM, pathsWithTypeO, legsOfTypeM, legsOfTypeO);
 
     }
-    #pragma endregion
-	return 0;
+#pragma endregion
 }
-
-

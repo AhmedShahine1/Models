@@ -5,18 +5,10 @@
 #include "FareClass.h"
 
 using namespace std;
-
-class Path
-{
+class Path {
 public:
-	Leg* Legs;
-	string to;
-	string from;
-	int legCount;
-	FareClass* fareClasses;
-	int fareClassCount;
-	Path() : Legs(nullptr), to(""), from(""), fareClasses(nullptr) {}
-
+	// Default constructor
+	Path() : Legs(nullptr), to(""), from(""), legCount(0), fareClasses(nullptr), fareClassCount(0) {}
 	Path(string to, string from, int legCount, int fareClassCount)
 	{
 		this->legCount = legCount;
@@ -27,61 +19,68 @@ public:
 		Legs = new Leg[legCount];
 	}
 
+	// Destructor to free allocated memory
 	~Path() {
 		delete[] Legs;
+		delete[] fareClasses;
 	}
 
-	// Function to add a leg to the path
-	void addLeg(Leg* newLeg) {
-		for (int i = 0; i < legCount; ++i) {
-			Legs[i] = newLeg[i];
+	// Setter functions
+	void setTo(const string& t) {
+		to = t;
+	}
+
+	void setFrom(const string& f) {
+		from = f;
+	}
+
+	void setLegs(const Leg* legsArray, int count) {
+		// Assume ownership of the array
+		Legs = new Leg[count];
+		for (int i = 0; i < count; ++i) {
+			Legs[i] = legsArray[i];
 		}
+		legCount = count;
 	}
 
-	// Function to add a Fare Class to the path
-	void addFareClass(FareClass* newFareClass) {
-		for (int i = 0; i < fareClassCount; ++i) {
-			fareClasses[i] = newFareClass[i];
+	void setFareClasses(const FareClass* fareArray, int count) {
+		// Assume ownership of the array
+		fareClasses = new FareClass[count];
+		for (int i = 0; i < count; ++i) {
+			fareClasses[i] = fareArray[i];
 		}
+		fareClassCount = count;
 	}
 
-	// Function to display path details
-	void displayPath() {
-		cout << "Path Details:" << endl;
-		cout << "To: " << to << endl;
-		cout << "From: " << from << endl;
-		cout << "Leg Count: " << legCount << endl;
-
-		// Display details of each leg in the path
-		for (int i = 0; i < legCount; ++i) {
-			Legs[i].displayLeg();
-		}
-
-		cout << "Fare Classes:" << endl;
-		for (int i = 0; i < fareClassCount; ++i) {
-			fareClasses[i].displayDetailToPath();
-		}
-	}
-
-	void DisplayPathToConstraints(int i) {
-		cout << "Path Id:" << i + 1 << endl;
-		cout << "To: " << to << endl;
-		cout << "From: " << from << endl;
-	}
-	// Function to get the value of 'to'
+	// Getter functions
 	string getTo() const {
 		return to;
 	}
 
-	// Function to get the value of 'from'
 	string getFrom() const {
 		return from;
+	}
+
+	const Leg* getLegs() const {
+		return Legs;
+	}
+
+	int getLegCount() const {
+		return legCount;
+	}
+
+	 FareClass* getFareClasses() {
+		return fareClasses;
+	}
+
+	int getFareClassCount() const {
+		return fareClassCount;
 	}
 
 	// Function to checK if the path has at least one leg of type "m"
 	bool hasLegOfTypeM() const {
 		for (int i = 0; i < legCount; ++i) {
-			if (Legs[i].type == "Mandatory") {
+			if (Legs[i].getType() == "Mandatory") {
 				return true;
 			}
 		}
@@ -90,7 +89,7 @@ public:
 	// Function to checK if the path has at least one leg of type "O"
 	bool hasLegOfTypeO() const {
 		for (int i = 0; i < legCount; ++i) {
-			if (Legs[i].type == "Optional") {
+			if (Legs[i].getType() == "Optional") {
 				return true;
 			}
 		}
@@ -107,4 +106,26 @@ public:
 		return false;  // No matching leg found
 	}
 
+	void display() {
+		cout << "Leg Details:\n";
+		cout << "To: " << to << "\n";
+		cout << "From: " << from << "\n";
+		cout << "Number of Leg: " << legCount << "\n";
+		cout << "Number of Fare Class: " << fareClassCount << "\n";
+		for (int i = 0; i < legCount; i++)
+		{
+			Legs[i].display();
+		}
+		for (int i = 0; i < fareClassCount; i++)
+		{
+			fareClasses[i].display();
+		}
+	}
+private:
+	Leg* Legs;
+	string to;
+	string from;
+	int legCount;
+	FareClass* fareClasses;
+	int fareClassCount;
 };

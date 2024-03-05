@@ -5,20 +5,12 @@
 #include "FareClass.h"
 
 using namespace std;
-
-class AirCraft
-{
+class AirCraft {
 public:
-	string Type;
-	int NumberAirCraft;
-    int numNodes;
-	string* nodes;
-    FareClass* fareClasses;
-    int fareClassCount;
-    // Default ructor
-    AirCraft() : Type(""), NumberAirCraft(0), nodes(nullptr), fareClasses(nullptr) {}
+    // Default constructor
+    AirCraft() : Type(""), NumberAirCraft(0), numNodes(0), nodes(nullptr),
+        fareClasses(nullptr), fareClassCount(0), legs(nullptr), numofLegs(0) {}
 
-    // ructor
     AirCraft(string type, int numberAirCraft, int numNodes)
         : Type(type), NumberAirCraft(numberAirCraft),numNodes(numNodes) {
         // Allocate memory for the nodes array
@@ -29,25 +21,79 @@ public:
         // Allocate memory for the nodes array
         fareClasses = new FareClass[fareClassCount];
     }
-    // Destructor
-    ~AirCraft() {
-        // Deallocate memory for the nodes array
-        delete[] nodes;
+    // Setter functions
+    void setType(const string& type) {
+        Type = type;
     }
 
-    // Function to set values for nodes
-    void setNodesValues(string* nodeValues, int numNodes) {
-        for (int i = 0; i < numNodes; ++i) {
-            nodes[i] = nodeValues[i];
-        }
+    void setNumberAirCraft(int number) {
+        NumberAirCraft = number;
     }
 
-    // Function to set values for Fare Class
-    void setFareClassValues(FareClass* newFareClass) {
-        for (int i = 0; i < fareClassCount; ++i) {
-            fareClasses[i] = newFareClass[i];
-        }
+    void setNumNodes(int num) {
+        numNodes = num;
     }
+
+    void setNodes(const string* n, int count) {
+        // Assume ownership of the array
+        nodes = new string[count];
+        for (int i = 0; i < count; ++i) {
+            nodes[i] = n[i];
+        }
+        numNodes = count;
+    }
+
+    void setFareClasses(const FareClass* fareArray, int count) {
+        // Assume ownership of the array
+        fareClasses = new FareClass[count];
+        for (int i = 0; i < count; ++i) {
+            fareClasses[i] = fareArray[i];
+        }
+        fareClassCount = count;
+    }
+
+    void setLegs(const Leg* legsArray, int count) {
+        // Assume ownership of the array
+        legs = new Leg[count];
+        for (int i = 0; i < count; ++i) {
+            legs[i] = legsArray[i];
+        }
+        numofLegs = count;
+    }
+
+    // Getter functions
+    string getType() const {
+        return Type;
+    }
+
+    int getNumberAirCraft() const {
+        return NumberAirCraft;
+    }
+
+    int getNumNodes() const {
+        return numNodes;
+    }
+
+    const string* getNodes() const {
+        return nodes;
+    }
+
+    const FareClass* getFareClasses() const {
+        return fareClasses;
+    }
+
+    int getFareClassCount() const {
+        return fareClassCount;
+    }
+
+    const Leg* getLegs() const {
+        return legs;
+    }
+
+    int getNumofLegs() const {
+        return numofLegs;
+    }
+
     void displayDetails(){
         cout << "AirCraft Details:" << endl;
         cout << "Type: " << Type << endl;
@@ -62,10 +108,9 @@ public:
 
         cout << "Fare Classes:" << endl;
         for (int i = 0; i < fareClassCount; ++i) {
-            fareClasses[i].displayDetailToAirCraft();
+            //fareClasses[i].displayDetailToAirCraft();
         }
     }
-
 
     void DisplayAirCraftToConstraints(int i) {
         cout << "AirCraft Id:" << i + 1 << endl;
@@ -79,25 +124,14 @@ public:
         }
         cout << endl;
     }
-    // Getter function for Type
-    string getType() const {
-        return Type;
-    }
 
-    // Getter function for NumberAirCraft
-    int getNumberAirCraft() const {
-        return NumberAirCraft;
-    }
-
-    // Getter function for numNodes
-    int getNumNodes() const {
-        return numNodes;
-    }
-
-    // Getter function for nodes
-    string* getNodes() const {
-        return nodes;
-    }
-
+private:
+    string Type;
+    int NumberAirCraft;
+    int numNodes;
+    string* nodes;
+    FareClass* fareClasses;
+    int fareClassCount;
+    Leg* legs;
+    int numofLegs;
 };
-

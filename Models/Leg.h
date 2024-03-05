@@ -4,15 +4,12 @@
 #include "AirCraft.h"
 
 using namespace std;
-
-class Leg
-{
+class Leg {
 public:
-	string to;
-	string from;
-	string type;
-	Leg() : to(""), from(""), type(""){}
-	Leg(string to,string from,string type)
+	// Default constructor
+	Leg() : to(""), from(""), type(""), cost(0) {}
+
+	Leg(string to, string from, string type)
 	{
 		this->to = to;
 		this->from = from;
@@ -23,29 +20,49 @@ public:
 			this->type = "Optional";
 		}
 	}
-	// Function to display leg details
-	void displayLeg(){
-		cout << "Leg Details:" << endl;
-		cout << "To: " << to << endl;
-		cout << "From: " << from << endl;
-		cout << "Type: " << type << endl;
-	}
 
-	// Function to get the value of 'to'
+	// Getter functions
 	string getTo() const {
 		return to;
 	}
 
-	// Function to get the value of 'from'
 	string getFrom() const {
 		return from;
 	}
 
-	// Function to get the value of 'type'
 	string getType() const {
 		return type;
 	}
 
+	int getCost() const {
+		return cost;
+	}
+
+	// Setter functions (encapsulation)
+	void setTo(const string& t) {
+		to = t;
+	}
+
+	void setFrom(const string& f) {
+		from = f;
+	}
+
+	void setType(const string& ty) {
+		type = ty;
+	}
+
+	void setCost(int c) {
+		cost = c;
+	}
+
+	// Display function
+	void display() const {
+		cout << "Leg Details:\n";
+		cout << "To: " << to << "\n";
+		cout << "From: " << from << "\n";
+		cout << "Type: " << type << "\n";
+		cout << "Cost: " << cost << "\n";
+	}
 	// Function to checK if the given to and from values match the leg
 	bool hasToFrom(string checKTo, string checKFrom) {
 		return (to == checKTo && from == checKFrom);
@@ -55,5 +72,10 @@ public:
 	bool hasType(string checkType) const {
 		return (type == checkType);
 	}
-};
 
+private:
+	string to;
+	string from;
+	string type;
+	int cost;
+};

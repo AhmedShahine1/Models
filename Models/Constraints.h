@@ -21,11 +21,8 @@ public:
 	Leg* legsOfTypeM;
 	Leg* legsOfTypeO;
 	string** PathsthatContainLeg;
-	//Parameters
-	int** Caj;
-	int** Fph;
 
-    Constraints(string** PathsthatContainLeg,int* numPathsthatContainLeg, int numAirCrafts, int numPaths, int numLegs, int numFareClasses, int numOfLegsOfTypeO, int numOfLegsOfTypeM, int numOfPathsWithLegO, int numOfPathsWithLegM, Leg* Legs, Path* Paths, AirCraft* AirCrafts, string* FareClasses, int** Caj, int** Fph, Path* pathsWithTypeM, Path* pathsWithTypeO, Leg* legsOfTypeM, Leg* legsOfTypeO)
+    Constraints(string** PathsthatContainLeg,int* numPathsthatContainLeg, int numAirCrafts, int numPaths, int numLegs, int numFareClasses, int numOfLegsOfTypeO, int numOfLegsOfTypeM, int numOfPathsWithLegO, int numOfPathsWithLegM, Leg* Legs, Path* Paths, AirCraft* AirCrafts, string* FareClasses, Path* pathsWithTypeM, Path* pathsWithTypeO, Leg* legsOfTypeM, Leg* legsOfTypeO)
         : PathsthatContainLeg(PathsthatContainLeg),
 		numPathsthatContainLeg(numPathsthatContainLeg),
 		numberofAirCrafts(numAirCrafts),
@@ -40,8 +37,6 @@ public:
         Paths(Paths),
         AirCrafts(AirCrafts),
         FareClasses(FareClasses),
-        Caj(Caj),
-        Fph(Fph),
 		pathsWithTypeM(pathsWithTypeM),
 		pathsWithTypeO(pathsWithTypeO),
 		legsOfTypeM(legsOfTypeM),
@@ -199,7 +194,7 @@ public:
 				{
 					if (Paths[p].hasLeg(Legs[i].getTo(), Legs[i].getFrom()))
 					{
-						Output += "P[" + Paths[p].getFrom() + "," + Paths[p].getTo() + "][" + Paths[p].fareClasses[j].name + "]";
+						Output += "P[" + Paths[p].getFrom() + "," + Paths[p].getTo() + "][" + Paths[p].getFareClasses()[j].getName() + "]";
 						if (p != numberOfPaths - 1 && Paths[p+1].hasLeg(Legs[i].getTo(), Legs[i].getFrom()) )
 						{
 							Output += " + ";
@@ -226,11 +221,11 @@ public:
 					for (int p = 0; p < numberOfPaths; p++)
 					{
 						if (p == 0){
-							Output += "X[" + AirCrafts[s].getType() + "][" + Legs[i].getFrom() + "," + Legs[i].getTo() + "] * Min{Cap[" + Paths[p].fareClasses[j].name + "][" + AirCrafts[s].getType() + "], ";
+							Output += "X[" + AirCrafts[s].getType() + "][" + Legs[i].getFrom() + "," + Legs[i].getTo() + "] * Min{Cap[" + Paths[p].getFareClasses()[j].getName() + "][" + AirCrafts[s].getType() + "], ";
 						}
 						if (Paths[p].hasLeg(Legs[i].getTo(), Legs[i].getFrom()))
 						{
-							Output += "M[" + Paths[p].getFrom() + "," + Paths[p].getTo() + "][" + Paths[p].fareClasses[j].name + "] + ";
+							Output += "M[" + Paths[p].getFrom() + "," + Paths[p].getTo() + "][" + Paths[p].getFareClasses()[j].getName() + "] + ";
 							if (p == numberOfPaths - 1) {
 								Output = Output.substr(0, Output.size()-2);
 								Output += "} ";
