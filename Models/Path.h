@@ -106,6 +106,13 @@ public:
 		return false;  // No matching leg found
 	}
 
+	int getPriceFromFareClass(string fareClassName) {
+		for (int i = 0; i < fareClassCount; i++) {
+			if (fareClasses[i].getName() == fareClassName)
+				return fareClasses[i].getPrice();
+		}
+	}
+
 	void display() {
 		cout << "Leg Details:\n";
 		cout << "To: " << to << "\n";

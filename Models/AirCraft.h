@@ -125,6 +125,13 @@ public:
         cout << endl;
     }
 
+    int getCostFromLeg(string FromLeg, string ToLeg) {
+        for (int i = 0; i < numofLegs; i++) {
+            if (FromLeg == legs[i].getFrom() && ToLeg == legs[i].getTo()) {
+                return legs[i].getCost();
+            }
+        }
+    }
 private:
     string Type;
     int NumberAirCraft;

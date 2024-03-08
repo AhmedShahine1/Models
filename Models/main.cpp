@@ -7,13 +7,10 @@
 #include "Constraints.h"
 #include "FareClass.h"
 #include "Cplex.h"
-#include"ilcplex/ilocplex.h"
-#include<chrono>
-
+#include"ilcplex/ilocplex.h";
+#include<chrono>;
 
 using namespace std;
-typedef IloArray<IloNumVarArray> NumVar2D; // enables us to defien a 2-D decision varialbe
-typedef IloArray<NumVar2D> NumVar3D;
 
 #pragma region Function
 void displayAircraftDetails(AirCraft* aircraftArray, int numOfAircraft) {
@@ -109,29 +106,21 @@ void System(string** PathsthatContainLeg, int* numPathsthatContainLeg, int numAi
             try
             {
                 Constraints constrain = Constraints(PathsthatContainLeg, numPathsthatContainLeg, numAirCrafts, numPaths, numLegs, numFareClasses, numOfLegsOfTypeO, numOfLegsOfTypeM, numOfPathsWithLegO, numOfPathsWithLegM, Legs, Paths, AirCrafts, FareClasses, pathsWithTypeM, pathsWithTypeO, legsOfTypeM, legsOfTypeO);
-                cout << endl << "Contrain 1:" << endl;
-                constrain.WriteData("Constrain 1:");
+                cout << endl << "Constrain1:" << endl;
                 constrain.Consrtaint_1();
-                cout << endl << "Contrain 2:" << endl;
-                constrain.WriteData("Constrain 2:");
+                cout << endl << "Constrain2:" << endl;
                 constrain.Consrtaint_2();
-                cout << endl << "Contrain 5:" << endl;
-                constrain.WriteData("Constrain 5:");
+                cout << endl << "Constrain3:" << endl;
                 constrain.Consrtaint_5();
-                cout << endl << "Contrain 6:" << endl;
-                constrain.WriteData("Constrain 6:");
+                cout << endl << "Constrain4:" << endl;
                 constrain.Consrtaint_6();
-                cout << endl << "Contrain 7:" << endl;
-                constrain.WriteData("Constrain 7:");
+                cout << endl << "Constrain5:" << endl;
                 constrain.Consrtaint_7();
-                cout << endl << "Contrain 8:" << endl;
-                constrain.WriteData("Constrain 8:");
+                cout << endl << "Constrain7:" << endl;
                 constrain.Constraint_8();
-                cout << endl << "Contrain 9:" << endl;
-                constrain.WriteData("Constrain 9:");
+                cout << endl << "Constrain7:" << endl;
                 constrain.Consrtaint_9();
-                cout << endl << "Contrain 10:" << endl;
-                constrain.WriteData("Constrain 10:");
+                cout << endl << "Constrain9:" << endl;
                 constrain.Consrtaint_10();
             }
             catch (const exception&)
@@ -143,7 +132,8 @@ void System(string** PathsthatContainLeg, int* numPathsthatContainLeg, int numAi
         {
             try
             {
-
+                Cplex cplex = Cplex(PathsthatContainLeg, numPathsthatContainLeg, numAirCrafts, numPaths, numLegs, numFareClasses, numOfLegsOfTypeO, numOfLegsOfTypeM, numOfPathsWithLegO, numOfPathsWithLegM, Legs, Paths, AirCrafts, FareClasses, pathsWithTypeM, pathsWithTypeO, legsOfTypeM, legsOfTypeO);
+                cplex.System();
             }
             catch (const exception&)
             {

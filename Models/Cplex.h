@@ -1,5 +1,504 @@
 #pragma once
+#include"ilcplex/ilocplex.h";
+#include<chrono>;
+typedef IloArray<IloNumVarArray> NumVar2D; // enables us to defien a 2-D decision varialbe
+typedef IloArray<NumVar2D> NumVar3D;
+
 class Cplex
 {
-};
+public:
+	int numberofAirCrafts, numberOfPaths, numberOfLegs, numberOfFareClasses, numOfLegsOfTypeO, numOfLegsOfTypeM, numOfPathsWithLegO, numOfPathsWithLegM;
+	int* numPathsthatContainLeg;
+	//Sets
+	Leg* Legs;
+	Path* Paths;
+	AirCraft* AirCrafts;
+	string* FareClasses;
+	Path* pathsWithTypeM;
+	Path* pathsWithTypeO;
+	Leg* legsOfTypeM;
+	Leg* legsOfTypeO;
+	string** PathsthatContainLeg;
 
+	Cplex(string** PathsthatContainLeg, int* numPathsthatContainLeg, int numAirCrafts, int numPaths, int numLegs, int numFareClasses, int numOfLegsOfTypeO, int numOfLegsOfTypeM, int numOfPathsWithLegO, int numOfPathsWithLegM, Leg* Legs, Path* Paths, AirCraft* AirCrafts, string* FareClasses, Path* pathsWithTypeM, Path* pathsWithTypeO, Leg* legsOfTypeM, Leg* legsOfTypeO)
+		: PathsthatContainLeg(PathsthatContainLeg),
+		numPathsthatContainLeg(numPathsthatContainLeg),
+		numberofAirCrafts(numAirCrafts),
+		numberOfPaths(numPaths),
+		numberOfLegs(numLegs),
+		numberOfFareClasses(numFareClasses),
+		numOfLegsOfTypeO(numOfLegsOfTypeO),
+		numOfLegsOfTypeM(numOfLegsOfTypeM),
+		numOfPathsWithLegO(numOfPathsWithLegO),
+		numOfPathsWithLegM(numOfPathsWithLegM),
+		Legs(Legs),
+		Paths(Paths),
+		AirCrafts(AirCrafts),
+		FareClasses(FareClasses),
+		pathsWithTypeM(pathsWithTypeM),
+		pathsWithTypeO(pathsWithTypeO),
+		legsOfTypeM(legsOfTypeM),
+		legsOfTypeO(legsOfTypeO) {
+	}
+	bool System() {
+		auto start = chrono::high_resolution_clock::now();
+		IloEnv env;
+		IloModel Model(env);
+#pragma region Define decision variable
+		NumVar2D X(env, numberofAirCrafts);
+		IloNumVarArray Z(env, numberOfPaths, 0, IloInfinity, ILOINT);
+		NumVar2D P(env, numberOfPaths);
+
+		for (int s = 0; s < numberofAirCrafts; s++)
+		{
+			X[s] = IloNumVarArray(env, numberOfLegs, 0, IloInfinity, ILOINT);
+		}
+		for (int s = 0; s < numberOfPaths; s++)
+		{
+			P[s] = IloNumVarArray(env, numberOfFareClasses, 0, IloInfinity, ILOINT);
+		}
+
+#pragma endregion
+#pragma region Objective Function
+
+		IloExpr exp0(env);
+
+		for (int i = 0; i < numberOfPaths; i++)
+		{
+			for (int j = 0; j < numberOfFareClasses; j++) {
+					exp0+=(Paths[i].getPriceFromFareClass(FareClasses[j])*P[i][j]);
+			}
+		}
+		for (int i = 0; i < numberofAirCrafts; i++)
+		{
+			for (int x = 0; x < numberOfLegs; x++)
+			{
+				exp0 -= (AirCrafts[i].getCostFromLeg(Legs[x].getFrom(), Legs[x].getTo()) * X[i][x]);
+			}
+		}
+
+		Model.add(IloMaximize(env, exp0));
+
+#pragma endregion
+#pragma region Constraints
+		//Constrain1
+		string Constrain1 = readFromFile();
+		int countConstrain1 = countLines(Constrain1);
+		char operation = '+';
+		int i = 0;
+		char Condition = NULL;
+		IloExpr exp1(env);
+		IloExpr exp2(env);
+		while(i < countConstrain1) {
+			switch (operation)
+			{
+			case '+':
+			{
+				if (Condition == NULL) {
+					if (isIntegerExpression(Constrain1[0])) {
+						string number = extractNumber(Constrain1);
+						int value = stringToInt(number);
+						exp1 += value;
+					}
+					else if(Constrain1[0] + Constrain1[1] + Constrain1[2] == 'Min' || Constrain1[0] + Constrain1[1] + Constrain1[2] == 'Max') {}
+					else {
+
+						string Expression = extractExpression(Constrain1);
+						string operationType = extractOperationType(Expression);
+						if (operationType == "Cap")
+						{
+							string AirCraftType, FareClassName;
+							extract1D(Expression, AirCraftType, FareClassName);
+							for (int x = 0; x < numberofAirCrafts; x++) {
+								for (int y = 0; y < numberOfFareClasses; y++)
+								{
+									if (AirCrafts[x].getType() == AirCraftType && FareClasses[y] == FareClassName) {
+										exp1 += AirCrafts[x].getFareClasses()[y].getCapah();
+										cout << AirCrafts[x].getFareClasses()[y].getCapah();
+										x = numberofAirCrafts;
+										y = numberOfFareClasses;
+									}
+								}
+							}
+
+						}
+						else if (operationType == "X")
+						{
+							string From, To, AirCraftName;
+							extract2D1To2(Expression, AirCraftName, From, To);
+							for (int x = 0; x < numOfLegsOfTypeM; x++) {
+								for (int y = 0; y < numberofAirCrafts; y++) {
+									if (AirCrafts[y].getType() == AirCraftName && Legs[x].getFrom() == From && Legs[x].getTo() == To) {
+										exp1 += X[x][y];
+										cout << AirCrafts[y].getType();
+										y = numberofAirCrafts;
+										x = numOfLegsOfTypeM;
+									}
+								}
+							}
+						}
+						else if(operationType == "Z") {
+							string From, To;
+							extract1D(Expression, From, To);
+							for (int x = 0; x < numberOfPaths; x++) {
+								if (Paths[x].getFrom() == From && Paths[x].getTo() == To) {
+									exp1 += Z[x];
+									x = numOfLegsOfTypeM;
+								}
+							}
+						}
+						else if(operationType == "P") {
+							string From, To, FareClassName;
+							extract2D2To1(Expression, FareClassName, From, To);
+							for (int x = 0; x < numberOfPaths; x++) {
+								for (int y = 0; y < numberOfFareClasses; y++) {
+									if (FareClasses[y] == FareClassName && Paths[x].getFrom() == From && Paths[x].getTo() == To) {
+										exp1 += P[x][y];
+										y = numberOfFareClasses;
+										x = numberOfPaths;
+									}
+								}
+							}
+						}
+						else if(operationType == "M") {
+							string From, To, FareClassName;
+							extract2D2To1(Expression, FareClassName, From, To);
+							for (int x = 0; x < numberOfPaths; x++) {
+								for (int y = 0; y < numberOfFareClasses; y++) {
+									if (FareClasses[y] == FareClassName && Paths[x].getFrom() == From && Paths[x].getTo() == To) {
+										exp1 += Paths[x].getFareClasses()[y].getMph();
+										y = numberOfFareClasses;
+										x = numberOfPaths;
+									}
+								}
+							}
+						}
+					}
+				}
+				else
+				{
+					if (isIntegerExpression(Constrain1[0])) {
+						string number = extractNumber(Constrain1);
+						int value = stringToInt(number);
+						exp2 += value;
+					}
+					else if (Constrain1[0] + Constrain1[1] + Constrain1[2] == 'Min' || Constrain1[0] + Constrain1[1] + Constrain1[2] == 'Max') {}
+					else {
+						string Expression = extractExpression(Constrain1);
+						string operationType = extractOperationType(Expression);
+						if (operationType == "Cap")
+						{
+							string AirCraftType, FareClassName;
+							extract1D(Expression, AirCraftType, FareClassName);
+							for (int x = 0; x < numberofAirCrafts; x++) {
+								for (int y = 0; y < numberOfFareClasses; y++)
+								{
+									if (AirCrafts[x].getType() == AirCraftType && FareClasses[y] == FareClassName) {
+										exp2 += AirCrafts[x].getFareClasses()[y].getCapah();
+										x = numberofAirCrafts;
+										y = numberOfFareClasses;
+									}
+								}
+							}
+
+						}
+						else if (operationType == "X")
+						{
+							string From, To, AirCraftName;
+							extract2D1To2(Expression, AirCraftName, From, To);
+							for (int x = 0; x < numOfLegsOfTypeM; x++) {
+								for (int y = 0; y < numberofAirCrafts; y++) {
+									if (AirCrafts[y].getType() == AirCraftName && Legs[x].getFrom() == From && Legs[x].getTo() == To) {
+										exp2 += X[x][y];
+										y = numberofAirCrafts;
+										x = numOfLegsOfTypeM;
+									}
+								}
+							}
+						}
+						else if (operationType == "Z") {
+							string From, To;
+							extract1D(Expression, From, To);
+							for (int x = 0; x < numberOfPaths; x++) {
+								if (Paths[x].getFrom() == From && Paths[x].getTo() == To) {
+									exp2 += Z[x];
+									x = numOfLegsOfTypeM;
+								}
+							}
+						}
+						else if (operationType == "P") {
+							string From, To, FareClassName;
+							extract2D2To1(Expression, FareClassName, From, To);
+							for (int x = 0; x < numberOfPaths; x++) {
+								for (int y = 0; y < numberOfFareClasses; y++) {
+									if (FareClasses[y] == FareClassName && Paths[x].getFrom() == From && Paths[x].getTo() == To) {
+										exp2 += P[x][y];
+										y = numberOfFareClasses;
+										x = numberOfPaths;
+									}
+								}
+							}
+						}
+						else if (operationType == "M") {
+							string From, To, FareClassName;
+							extract2D2To1(Expression, FareClassName, From, To);
+							for (int x = 0; x < numberOfPaths; x++) {
+								for (int y = 0; y < numberOfFareClasses; y++) {
+									if (FareClasses[y] == FareClassName && Paths[x].getFrom() == From && Paths[x].getTo() == To) {
+										exp2 += Paths[x].getFareClasses()[y].getMph();
+										y = numberOfFareClasses;
+										x = numberOfPaths;
+									}
+								}
+							}
+						}
+					}
+				}
+				//Check If end line
+				if (Constrain1[0] == '\n') {
+					switch (Condition)
+					{
+					case '=': {
+						Model.add(exp1 == exp2);
+						break;
+					}
+					case '<=': {
+						Model.add(exp1 <= exp2);
+						break;
+					}
+					case '>=': {
+						Model.add(exp1 >= exp2);
+						break;
+					}
+					case '<': {
+						Model.add(exp1 < exp2);
+						break;
+					}
+					case '>': {
+						Model.add(exp1 > exp2);
+						break;
+					}
+					}
+				}
+				if (Constrain1[0] == '\n') {
+					operation = '+';
+					Condition = NULL;
+					i++;
+					IloExpr exp1(env);
+					IloExpr exp2(env);
+				}
+				else if (Constrain1[0] != '<' && Constrain1[0] != '=' && Constrain1[0] != '>' && Constrain1[0] + Constrain1[1] != '<=' && Constrain1[0] + Constrain1[1] != '>=')
+					operation = Constrain1[0];
+				else if (Constrain1[0] + Constrain1[1] == '<=' || Constrain1[0] + Constrain1[1] == '>=') {
+					operation = '+';
+					Condition = Constrain1[0] + Constrain1[1];
+					Constrain1.erase(0, 1);
+				}
+				else
+				{
+					operation = '+';
+					Condition = Constrain1[0];
+				}
+				Constrain1.erase(0, 1);
+				break;
+			}
+			case '-':
+			{
+				break;
+			}
+			case '*':
+			{
+				break;
+			}
+			case '/':
+			{
+				break;
+			}
+			}
+		}
+#pragma endregion
+
+		return true;
+	}
+	std::string readFromFile() {
+		std::ifstream file("Output.txt");
+		std::string fileContents;
+
+		if (file.is_open()) {
+			std::string line;
+			while (std::getline(file, line)) {
+				fileContents += line + '\n';
+			}
+			file.close();
+		}
+		else {
+			std::cerr << "Unable to open file: Output.txt" << std::endl;
+		}
+
+		return fileContents;
+	}	
+	int countLines(const string& data) {
+		int numberOfLines = 0; // Initialize to 1 to account for the last line
+
+		for (char ch : data) {
+			if (ch == '\n') {
+				numberOfLines++;
+			}
+		}
+
+		return numberOfLines;
+	}
+	string extractExpression(string& inputString) {
+		// Find the position of '+'
+		size_t index1 = inputString.find("]+");
+		size_t index2 = inputString.find("]-");
+		size_t index3 = inputString.find("]*");
+		size_t index4 = inputString.find("]/");
+		size_t index5 = inputString.find("]=");
+		size_t index6 = inputString.find("]<");
+		size_t index7 = inputString.find("]>");
+		size_t index8 = inputString.find("]<=");
+		size_t index9 = inputString.find("]>=");
+		size_t index10 = inputString.find("]\n");
+
+
+		// Find the minimum non-negative index among the three
+		size_t plusPos = min({ index1, index2, index3, index4,index5, index6, index7, index8, index9, index10 }) +1;
+
+		// Extract the first expression
+		string expression = inputString.substr(0, plusPos);
+
+		// Trim leading and trailing whitespaces
+		size_t firstNonSpace = expression.find_first_not_of(" \t");
+		size_t lastNonSpace = expression.find_last_not_of(" \t");
+
+		if (firstNonSpace != string::npos && lastNonSpace != string::npos) {
+			expression = expression.substr(firstNonSpace, lastNonSpace - firstNonSpace + 1);
+		}
+
+		// Remove the extracted expression from the inputString
+		inputString.erase(0, plusPos);
+
+		return expression;
+	}
+	string extractNumber(string& inputString) {
+		// Find the position of '+'
+		size_t index1 = inputString.find("+");
+		size_t index2 = inputString.find("-");
+		size_t index3 = inputString.find("*");
+		size_t index4 = inputString.find("/");
+		size_t index5 = inputString.find("=");
+		size_t index6 = inputString.find("<");
+		size_t index7 = inputString.find(">");
+		size_t index8 = inputString.find("<=");
+		size_t index9 = inputString.find(">=");
+		size_t index10 = inputString.find("\n");
+
+		// Find the minimum non-negative index among the three
+		size_t plusPos = min({ index1, index2, index3, index4,index5, index6, index7, index8, index9, index10 });
+
+		// Extract the first expression
+		string expression = inputString.substr(0, plusPos);
+
+		// Trim leading and trailing whitespaces
+		size_t firstNonSpace = expression.find_first_not_of(" \t");
+		size_t lastNonSpace = expression.find_last_not_of(" \t");
+
+		if (firstNonSpace != string::npos && lastNonSpace != string::npos) {
+			expression = expression.substr(firstNonSpace, lastNonSpace - firstNonSpace + 1);
+		}
+
+		// Remove the extracted expression from the inputString
+		inputString.erase(0, plusPos);
+
+		return expression;
+	}
+	void extract2D1To2(const string& text, string& Aircraft, string& From, string& To) {
+		// Find the positions of '[' and ']' to extract the substrings
+		size_t aircraftStartPos = text.find('[') + 1;
+		size_t aircraftEndPos = text.find(']', aircraftStartPos);
+
+		// Extract the aircraft type
+		Aircraft = text.substr(aircraftStartPos, aircraftEndPos - aircraftStartPos);
+
+		// Find the positions of '[' and ',' to extract the substrings
+		size_t city1StartPos = aircraftEndPos + 2; // Move past "][" to the next character
+		size_t commaPos = text.find(',', city1StartPos);
+
+		// Extract the first city
+		From = text.substr(city1StartPos, commaPos - city1StartPos);
+
+		// Find the positions of ',' and ']' to extract the substrings
+		size_t city2StartPos = commaPos + 1;
+		size_t city2EndPos = text.find(']', city2StartPos);
+
+		// Extract the second city
+		To = text.substr(city2StartPos, city2EndPos - city2StartPos);
+	}
+	void extract2D2To1(const string& inputString, string& from, string& to, string& fareClassName) {
+		// Find the positions of '[' and ',' to extract the substrings
+		size_t city1StartPos = inputString.find('[') + 1;
+		size_t comma1Pos = inputString.find(',');
+
+		// Extract the first city
+		from = inputString.substr(city1StartPos, comma1Pos - city1StartPos);
+
+		// Find the positions of ',' and ']' to extract the substrings
+		size_t city2StartPos = comma1Pos + 1;
+		size_t city2EndPos = inputString.find(']', city2StartPos);
+
+		// Extract the second city
+		to = inputString.substr(city2StartPos, city2EndPos - city2StartPos);
+
+		// Find the positions of ']' and '[' to extract the substrings
+		size_t fareClassStartPos = city2EndPos + 2;
+		size_t fareClassEndPos = inputString.find(']', fareClassStartPos);
+
+		// Extract the fare class
+		fareClassName = inputString.substr(fareClassStartPos, fareClassEndPos - fareClassStartPos);
+	}
+	void extract1D(const string& inputString, string& from, string& to) {
+		// Find the positions of '[' and ',' to extract the substrings
+		size_t city1StartPos = inputString.find('[') + 1;
+		size_t commaPos = inputString.find(',');
+
+		// Extract the first city
+		from = inputString.substr(city1StartPos, commaPos - city1StartPos);
+
+		// Find the position of ',' and ']' to extract the second city
+		size_t city2StartPos = commaPos + 1;
+		size_t city2EndPos = inputString.find(']', city2StartPos);
+
+		// Extract the second city
+		to = inputString.substr(city2StartPos, city2EndPos - city2StartPos);
+	}
+	string extractOperationType(const string& inputString) {
+		// Find the position of '[' to extract the operation type
+		size_t bracketPos = inputString.find('[');
+
+		// Extract the operation type
+		string operationType = inputString.substr(0, bracketPos);
+
+		return operationType;
+	}
+	bool isIntegerExpression(char& expression) {
+			if (!isdigit(expression)) {
+				return false;  // If a non-digit character is found, it's not an integer expression
+			}
+		return true;  // All characters are digits
+	}
+	int stringToInt(const std::string& str) {
+		try {
+			return std::stoi(str);
+		}
+		catch (const std::invalid_argument& e) {
+			std::cerr << "Invalid argument: " << e.what() << std::endl;
+		}
+		catch (const std::out_of_range& e) {
+			std::cerr << "Out of range: " << e.what() << std::endl;
+		}
+
+		// Return a default value (e.g., -1) if conversion fails
+		return -1;
+	}
+};

@@ -43,7 +43,6 @@ public:
 		legsOfTypeO(legsOfTypeO) {
     }
 	~Constraints() {}
-
 	void Consrtaint_1()
 	{
 		for (int i = 0; i < numOfLegsOfTypeM; ++i)
@@ -53,13 +52,13 @@ public:
 			{
 				if (j == numberofAirCrafts - 1)
 				{
-					cout << "X[" << AirCrafts[j].getType() << "]" << "[" << legsOfTypeM[i].getFrom() << "," << legsOfTypeM[i].getTo() << "] = 1"<<endl;
-					Output += "X[" + AirCrafts[j].getType() + "]" + "[" + legsOfTypeM[i].getFrom() + "," + legsOfTypeM[i].getTo() + "] = 1";
+					cout << "X[" << AirCrafts[j].getType() << "]" << "[" << legsOfTypeM[i].getFrom() << "," << legsOfTypeM[i].getTo() << "]=1"<<endl;
+					Output += "X[" + AirCrafts[j].getType() + "]" + "[" + legsOfTypeM[i].getFrom() + "," + legsOfTypeM[i].getTo() + "]=1";
 				}
 				else
 				{
-					cout << "X[" << AirCrafts[j].getType() << "]" << "[" << legsOfTypeM[i].getFrom() << "," << legsOfTypeM[i].getTo() << "]" << " + ";
-					Output += "X[" + AirCrafts[j].getType() + "]" + "[" + legsOfTypeM[i].getFrom() + "," + legsOfTypeM[i].getTo() + "]" + " + ";
+					cout << "X[" << AirCrafts[j].getType() << "]" << "[" << legsOfTypeM[i].getFrom() << "," << legsOfTypeM[i].getTo() << "]" << "+";
+					Output += "X[" + AirCrafts[j].getType() + "]" + "[" + legsOfTypeM[i].getFrom() + "," + legsOfTypeM[i].getTo() + "]" + "+";
 				}
 			}
 			WriteData(Output);
@@ -76,13 +75,13 @@ public:
 			{
 				if (j == numberofAirCrafts - 1)
 				{
-					cout << "X[" << AirCrafts[j].getType() << "]" << "[" << legsOfTypeO[i].getFrom() << "," << legsOfTypeO[i].getTo() << "] <= 1";
-					Output += "X[" + AirCrafts[j].getType() + "]" + "[" + legsOfTypeO[i].getFrom() + "," + legsOfTypeO[i].getTo() + "] <= 1";
+					cout << "X[" << AirCrafts[j].getType() << "]" << "[" << legsOfTypeO[i].getFrom() << "," << legsOfTypeO[i].getTo() << "]<=1";
+					Output += "X[" + AirCrafts[j].getType() + "]" + "[" + legsOfTypeO[i].getFrom() + "," + legsOfTypeO[i].getTo() + "]<=1";
 				}
 				else
 				{
-					cout << "X[" << AirCrafts[j].getType() << "]" << "[" << legsOfTypeO[i].getFrom() << "," << legsOfTypeO[i].getTo() << "]" << " + ";
-					Output += "X[" + AirCrafts[j].getType() + "]" + "[" + legsOfTypeO[i].getFrom() + "," + legsOfTypeO[i].getTo() + "]" + " + ";
+					cout << "X[" << AirCrafts[j].getType() << "]" << "[" << legsOfTypeO[i].getFrom() << "," << legsOfTypeO[i].getTo() << "]" << "+";
+					Output += "X[" + AirCrafts[j].getType() + "]" + "[" + legsOfTypeO[i].getFrom() + "," + legsOfTypeO[i].getTo() + "]" + "+";
 				}
 			}
 			WriteData(Output);
@@ -94,8 +93,8 @@ public:
 		for (int i = 0; i < numOfPathsWithLegO; i++)
 		{
 			string Output;
-			cout << "Z[" << pathsWithTypeO[i].getFrom() << "," << pathsWithTypeO[i].getTo() << "] - {" ;
-			Output += "Z[" + pathsWithTypeO[i].getFrom() + "," + pathsWithTypeO[i].getTo() + "] - {";
+			cout << "Z[" << pathsWithTypeO[i].getFrom() << "," << pathsWithTypeO[i].getTo() << "]-{" ;
+			Output += "Z[" + pathsWithTypeO[i].getFrom() + "," + pathsWithTypeO[i].getTo() + "]-{";
 			for (int j = 0; j < numOfLegsOfTypeO; j++) {
 
 				for (int x = 0; x < numberofAirCrafts; x++)
