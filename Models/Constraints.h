@@ -93,20 +93,20 @@ public:
 		for (int i = 0; i < numOfPathsWithLegO; i++)
 		{
 			string Output;
-			cout << "Z[" << pathsWithTypeO[i].getFrom() << "," << pathsWithTypeO[i].getTo() << "]-{" ;
-			Output += "Z[" + pathsWithTypeO[i].getFrom() + "," + pathsWithTypeO[i].getTo() + "]-{";
+			cout << "Z[" << pathsWithTypeO[i].getFrom() << "," << pathsWithTypeO[i].getTo() << "]-" ;
+			Output += "Z[" + pathsWithTypeO[i].getFrom() + "," + pathsWithTypeO[i].getTo() + "]-";
 			for (int j = 0; j < numOfLegsOfTypeO; j++) {
 
 				for (int x = 0; x < numberofAirCrafts; x++)
 				{
 					if (x == numberofAirCrafts - 1) {
 						cout << "X[" << AirCrafts[x].getType() << "][" << legsOfTypeO[j].getFrom() << "," << legsOfTypeO[j].getTo();
-						cout << "]} <= 0" << endl;
-						Output += "X[" + AirCrafts[x].getType() + "][" +legsOfTypeO[j].getFrom() + "," + legsOfTypeO[j].getTo() + "]} <= 0";
+						cout << "]<=0" << endl;
+						Output += "X[" + AirCrafts[x].getType() + "][" +legsOfTypeO[j].getFrom() + "," + legsOfTypeO[j].getTo() + "]<=0";
 					}
 					else {
-						cout << "X[" << AirCrafts[x].getType() << "][" << legsOfTypeO[j].getFrom() << "," << legsOfTypeO[j].getTo() << "] + ";
-						Output += "X[" + AirCrafts[x].getType() + "][" + legsOfTypeO[j].getFrom() + "," + legsOfTypeO[j].getTo() + "] + ";
+						cout << "X[" << AirCrafts[x].getType() << "][" << legsOfTypeO[j].getFrom() << "," << legsOfTypeO[j].getTo() << "]-";
+						Output += "X[" + AirCrafts[x].getType() + "][" + legsOfTypeO[j].getFrom() + "," + legsOfTypeO[j].getTo() + "]-";
 					}
 				}
 			}
@@ -121,26 +121,26 @@ public:
 		for (int optional_path_repeater = 0; optional_path_repeater < numOfPathsWithLegO; optional_path_repeater++)
 		{
 			string Output;
-			cout << "Z[" << pathsWithTypeO[optional_path_repeater].getFrom() << "," << pathsWithTypeO[optional_path_repeater].getTo() << "]" << " - ";
-			Output += "Z[" + pathsWithTypeO[optional_path_repeater].getFrom() + "," + pathsWithTypeO[optional_path_repeater].getTo() + "]" + " - ";
+			cout << "Z[" << pathsWithTypeO[optional_path_repeater].getFrom() << "," << pathsWithTypeO[optional_path_repeater].getTo() << "]" << "-";
+			Output += "Z[" + pathsWithTypeO[optional_path_repeater].getFrom() + "," + pathsWithTypeO[optional_path_repeater].getTo() + "]" + "-";
 			for (int aircrafts = 0; aircrafts < numberofAirCrafts; aircrafts++)
 			{
 				for (int optional_legs = 0; optional_legs < numOfLegsOfTypeO; optional_legs++)
 				{
-					cout << " X[" << AirCrafts[aircrafts].getType() << "][" << legsOfTypeO[optional_legs].getFrom() << "," << legsOfTypeO[optional_legs].getTo() << "]";
-					Output += " X[" + AirCrafts[aircrafts].getType() + "][" + legsOfTypeO[optional_legs].getFrom() + "," + legsOfTypeO[optional_legs].getTo() + "]";
+					cout << "X[" << AirCrafts[aircrafts].getType() << "][" << legsOfTypeO[optional_legs].getFrom() << "," << legsOfTypeO[optional_legs].getTo() << "]";
+					Output += "X[" + AirCrafts[aircrafts].getType() + "][" + legsOfTypeO[optional_legs].getFrom() + "," + legsOfTypeO[optional_legs].getTo() + "]";
 					if (aircrafts != (numberofAirCrafts - 1))
 					{
-						cout << " + ";
-						Output += " + ";
+						cout << "-";
+						Output += "-";
 					}
 				}//end last loop 
 
 			}// end second loop 
 
 
-			cout << " >= " << " 1 - | L[" << pathsWithTypeO[optional_path_repeater].getFrom() << "," << pathsWithTypeO[optional_path_repeater].getTo() << "] | " << endl;
-			Output += " >= 1 - | L[" + pathsWithTypeO[optional_path_repeater].getFrom() + "," + pathsWithTypeO[optional_path_repeater].getTo() + "] | ";
+			cout << ">=" << "1-|L[" << pathsWithTypeO[optional_path_repeater].getFrom() << "," << pathsWithTypeO[optional_path_repeater].getTo() << "]|" << endl;
+			Output += ">=1-|L[" + pathsWithTypeO[optional_path_repeater].getFrom() + "," + pathsWithTypeO[optional_path_repeater].getTo() + "]|";
 			WriteData(Output);
 		}//end first loop 
 		cout << endl << "----------------------------------------" << endl;
@@ -159,14 +159,14 @@ public:
 				// print the + for the summation equation 
 				if (aircraft != (numberofAirCrafts - 1))
 				{
-					cout << " + ";
-					Output += " + ";
+					cout << "+";
+					Output += "+";
 				}
 			}
 
 
-			cout << " <= ";
-			Output += " <= ";
+			cout << "<=";
+			Output += "<=";
 			for (int optional_paths_repeater = 0; optional_paths_repeater < numOfPathsWithLegO; ++optional_paths_repeater)
 			{
 				cout << "Z[" << pathsWithTypeO[optional_paths_repeater].getFrom() << "," << pathsWithTypeO[optional_paths_repeater].getTo() << "]";
@@ -196,20 +196,20 @@ public:
 						Output += "P[" + Paths[p].getFrom() + "," + Paths[p].getTo() + "][" + Paths[p].getFareClasses()[j].getName() + "]";
 						if (p != numberOfPaths - 1 && Paths[p+1].hasLeg(Legs[i].getTo(), Legs[i].getFrom()) )
 						{
-							Output += " + ";
+							Output += "+";
 						}
 						else if (p == numberOfPaths - 1){
-							Output += " <= ";
+							Output += "<=";
 						}
 						Count++;
 					}
 					else {
 						if (p != 0 && p != numberOfPaths - 1 && Paths[p + 1].hasLeg(Legs[i].getTo(), Legs[i].getFrom()) && Count != 0)
 						{
-							Output += " + ";
+							Output += "+";
 						}
 						else if (p == numberOfPaths - 1) {
-							Output += " <= ";
+							Output += "<=";
 						}
 					}
 				}
@@ -220,28 +220,28 @@ public:
 					for (int p = 0; p < numberOfPaths; p++)
 					{
 						if (p == 0){
-							Output += "X[" + AirCrafts[s].getType() + "][" + Legs[i].getFrom() + "," + Legs[i].getTo() + "] * Min{Cap[" + Paths[p].getFareClasses()[j].getName() + "][" + AirCrafts[s].getType() + "], ";
+							Output += "X[" + AirCrafts[s].getType() + "][" + Legs[i].getFrom() + "," + Legs[i].getTo() + "]*Min{Cap[" + AirCrafts[s].getType() + "," + Paths[p].getFareClasses()[j].getName() + "],";
 						}
 						if (Paths[p].hasLeg(Legs[i].getTo(), Legs[i].getFrom()))
 						{
-							Output += "M[" + Paths[p].getFrom() + "," + Paths[p].getTo() + "][" + Paths[p].getFareClasses()[j].getName() + "] + ";
+							Output += "M[" + Paths[p].getFrom() + "," + Paths[p].getTo() + "][" + Paths[p].getFareClasses()[j].getName() + "]+";
 							if (p == numberOfPaths - 1) {
 								Output = Output.substr(0, Output.size()-2);
-								Output += "} ";
+								Output += "]}";
 							}
 						}
 						else
 						{
 							if (p == numberOfPaths - 1) {
 								Output = Output.substr(0, Output.size() - 2);
-								Output += "}";
+								Output += "]}";
 							}
 						}
 					}
 					if (s != numberofAirCrafts - 1)
 					{
 						
-						Output += " + ";
+						Output += "+";
 					}
 					else {
 						Output += "";
@@ -259,15 +259,19 @@ public:
 		{
 			string Output;
 			for (int j = 0; j < numberOfFareClasses; j++) {
-				cout << "P["<< pathsWithTypeO[i].getFrom()<<","<< pathsWithTypeO[i].getTo()<<"]["<<FareClasses[j]<<"] <= Min{M[" << pathsWithTypeO[i].getFrom() << "," << pathsWithTypeO[i].getTo() << "][" << FareClasses[j]<<"],OCap[";
-				Output = "P[" + pathsWithTypeO[i].getFrom() + "," + pathsWithTypeO[i].getTo() + "][" + FareClasses[j] + "] <= Min{M[" + pathsWithTypeO[i].getFrom() + "," + pathsWithTypeO[i].getTo() + "][" + FareClasses[j] + "],OCap[";
+				cout << "P["<< pathsWithTypeO[i].getFrom()<<","<< pathsWithTypeO[i].getTo()<<"]["<<FareClasses[j]<<"]<=Min{M[" << pathsWithTypeO[i].getFrom() << "," << pathsWithTypeO[i].getTo() << "][" << FareClasses[j]<<"],";
+				Output = "P[" + pathsWithTypeO[i].getFrom() + "," + pathsWithTypeO[i].getTo() + "][" + FareClasses[j] + "]<=Min{M[" + pathsWithTypeO[i].getFrom() + "," + pathsWithTypeO[i].getTo() + "][" + FareClasses[j] + "],";
 				for (int x = 0; x < numberofAirCrafts; x++)
 				{
-					cout << "Cap[" << AirCrafts[x].getType() << ","<<FareClasses[j]<<"],";
-					Output += "Cap[" + AirCrafts[x].getType() + "," + FareClasses[j] + "],";
+					cout << "Cap[" << AirCrafts[x].getType() << ","<<FareClasses[j]<<"]";
+					Output += "Cap[" + AirCrafts[x].getType() + "," + FareClasses[j] + "]";
+					if (x != numberofAirCrafts - 1) {
+						cout << ",";
+						Output += ",";
+					}
 				}
-				cout << "]} * Z[" << pathsWithTypeO[i].getFrom() << "," << pathsWithTypeO[i].getTo() << "]" << endl;
-				Output += "]} * Z[" + pathsWithTypeO[i].getFrom() + "," + pathsWithTypeO[i].getTo() + "]";
+				cout << "}*Z[" << pathsWithTypeO[i].getFrom() << "," << pathsWithTypeO[i].getTo() << "]" << endl;
+				Output += "}*Z[" + pathsWithTypeO[i].getFrom() + "," + pathsWithTypeO[i].getTo() + "]";
 				WriteData(Output);
 			}
 		}
@@ -279,8 +283,8 @@ public:
 		{
 			string Output;
 			for (int j = 0; j < numberOfFareClasses; j++) {
-				cout << "P[" << Paths[i].getFrom() << "," << Paths[i].getTo() << "][" << FareClasses[j] << "] <=  D[" << Paths[i].getFrom() << "," << Paths[i].getTo() << "][" << FareClasses[j] << "]" << endl;
-				Output = "P[" + Paths[i].getFrom() + "," + Paths[i].getTo() + "][" + FareClasses[j] + "] <=  D[" + Paths[i].getFrom() + "," + Paths[i].getTo() + "][" + FareClasses[j] + "]";
+				cout << "P[" << Paths[i].getFrom() << "," << Paths[i].getTo() << "][" << FareClasses[j] << "]<=M[" << Paths[i].getFrom() << "," << Paths[i].getTo() << "][" << FareClasses[j] << "]" << endl;
+				Output = "P[" + Paths[i].getFrom() + "," + Paths[i].getTo() + "][" + FareClasses[j] + "]<=M[" + Paths[i].getFrom() + "," + Paths[i].getTo() + "][" + FareClasses[j] + "]";
 				WriteData(Output);
 			}
 		}

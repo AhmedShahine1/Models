@@ -11,7 +11,7 @@
 #include<chrono>;
 
 using namespace std;
-
+//M=Mean demand,P=Passanger,Cap=capacity,F=estimated price,Caj=Cost
 #pragma region Function
 void displayAircraftDetails(AirCraft* aircraftArray, int numOfAircraft) {
     for (int i = 0; i < numOfAircraft; ++i) {
@@ -134,6 +134,7 @@ void System(string** PathsthatContainLeg, int* numPathsthatContainLeg, int numAi
             {
                 Cplex cplex = Cplex(PathsthatContainLeg, numPathsthatContainLeg, numAirCrafts, numPaths, numLegs, numFareClasses, numOfLegsOfTypeO, numOfLegsOfTypeM, numOfPathsWithLegO, numOfPathsWithLegM, Legs, Paths, AirCrafts, FareClasses, pathsWithTypeM, pathsWithTypeO, legsOfTypeM, legsOfTypeO);
                 cplex.System();
+
             }
             catch (const exception&)
             {
