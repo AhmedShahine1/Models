@@ -160,6 +160,9 @@
     <Text Include="Path.txt" />
     <Text Include="price.txt" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="model.lp" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

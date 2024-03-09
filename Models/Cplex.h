@@ -74,9 +74,13 @@ public:
 		char operation = '+';
 		int i = 0;
 		string Condition;
-		IloExpr exp1(env);
-		IloExpr exp2(env);
-		IloExpr exp3(env);
+		IloExpr* exp1 = new IloExpr[countConstrain1];
+		IloExpr* exp2 = new IloExpr[countConstrain1];
+		// Initialize each IloExpr in the array
+		for (int i = 0; i < countConstrain1; ++i) {
+			exp1[i] = IloExpr(env);
+			exp2[i] = IloExpr(env);
+		}
 		while(i < countConstrain1) {
 			string MinMax=Constrain1.substr(0,3);
 			switch (operation)
@@ -87,11 +91,11 @@ public:
 					if (isIntegerExpression(Constrain1[0])) {
 						string number = extractNumber(Constrain1);
 						int value = stringToInt(number);
-						exp1 += value;
+						exp1[i] += value;
 					}
 					else if (MinMax == "Min" || MinMax == "Max") {
 						Constrain1.erase(0, 4);
-						exp1 += MinMaxValue(Constrain1.substr(0, Constrain1.find('}')+1), MinMax);
+						exp1[i] += MinMaxValue(Constrain1.substr(0, Constrain1.find('}') + 1), MinMax);
 						Constrain1.erase(0, Constrain1.find_first_of('}') + 1);
 					}
 					else if (Constrain1[0] == '|') {
@@ -103,7 +107,7 @@ public:
 							extract1D(Expression, From, To);
 							for (int x = 0; x < numberOfPaths; x++) {
 								if (Paths[x].getFrom() == From && Paths[x].getTo() == To) {
-									exp1+=Paths[x].getLegCount();
+									exp1[i] += Paths[x].getLegCount();
 
 									break;
 								}
@@ -122,7 +126,7 @@ public:
 								for (int y = 0; y < numberOfFareClasses; y++)
 								{
 									if (AirCrafts[x].getType() == AirCraftType && FareClasses[y] == FareClassName) {
-										exp1 += AirCrafts[x].getFareClasses()[y].getCapah();
+										exp1[i] += AirCrafts[x].getFareClasses()[y].getCapah();
 										x = numberofAirCrafts;
 										y = numberOfFareClasses;
 									}
@@ -137,7 +141,7 @@ public:
 							for (int x = 0; x < numberOfLegs; x++) {
 								for (int y = 0; y < numberofAirCrafts; y++) {
 									if (AirCrafts[y].getType() == AirCraftName && Legs[x].getFrom() == From && Legs[x].getTo() == To) {
-										exp1 += X[y][x];
+										exp1[i] += X[y][x];
 										y = numberofAirCrafts;
 										x = numOfLegsOfTypeM;
 									}
@@ -149,18 +153,18 @@ public:
 							extract1D(Expression, From, To);
 							for (int x = 0; x < numberOfPaths; x++) {
 								if (Paths[x].getFrom() == From && Paths[x].getTo() == To) {
-									exp1 += Z[x];
+									exp1[i] += Z[x];
 									x = numberOfPaths;
 								}
 							}
 						}
 						else if(operationType == "P") {
 							string From, To, FareClassName;
-							extract2D2To1(Expression, FareClassName, From, To);
+							extract2D2To1(Expression, From, To, FareClassName);
 							for (int x = 0; x < numberOfPaths; x++) {
 								for (int y = 0; y < numberOfFareClasses; y++) {
 									if (FareClasses[y] == FareClassName && Paths[x].getFrom() == From && Paths[x].getTo() == To) {
-										exp1 += P[x][y];
+										exp1[i] += P[x][y];
 										y = numberOfFareClasses;
 										x = numberOfPaths;
 									}
@@ -173,7 +177,7 @@ public:
 							for (int x = 0; x < numberOfPaths; x++) {
 								for (int y = 0; y < numberOfFareClasses; y++) {
 									if (FareClasses[y] == FareClassName && Paths[x].getFrom() == From && Paths[x].getTo() == To) {
-										exp1 += Paths[x].getFareClasses()[y].getMph();
+										exp1[i] += Paths[x].getFareClasses()[y].getMph();
 										y = numberOfFareClasses;
 										x = numberOfPaths;
 									}
@@ -187,11 +191,11 @@ public:
 					if (isIntegerExpression(Constrain1[0])) {
 						string number = extractNumber(Constrain1);
 						int value = stringToInt(number);
-						exp2 += value;
+						exp2[i] += value;
 					}
 					else if (MinMax == "Min" || MinMax == "Max") {
 						Constrain1.erase(0, 4);
-						exp2 += MinMaxValue(Constrain1.substr(0, Constrain1.find('}')+1), MinMax);
+						exp2[i] += MinMaxValue(Constrain1.substr(0, Constrain1.find('}')+1), MinMax);
 						Constrain1.erase(0, Constrain1.find_first_of('}') + 1);
 					}
 					else if (Constrain1[0] == '|') {
@@ -203,7 +207,7 @@ public:
 							extract1D(Expression, From, To);
 							for (int x = 0; x < numberOfPaths; x++) {
 								if (Paths[x].getFrom() == From && Paths[x].getTo() == To) {
-									exp2+= Paths[x].getLegCount();
+									exp2[i]+= Paths[x].getLegCount();
 									Constrain1.erase(0, 1);
 									break;
 								}
@@ -221,7 +225,7 @@ public:
 								for (int y = 0; y < numberOfFareClasses; y++)
 								{
 									if (AirCrafts[x].getType() == AirCraftType && FareClasses[y] == FareClassName) {
-										exp2 += AirCrafts[x].getFareClasses()[y].getCapah();
+										exp2[i] += AirCrafts[x].getFareClasses()[y].getCapah();
 										x = numberofAirCrafts;
 										y = numberOfFareClasses;
 									}
@@ -236,7 +240,7 @@ public:
 							for (int x = 0; x < numberOfLegs; x++) {
 								for (int y = 0; y < numberofAirCrafts; y++) {
 									if (AirCrafts[y].getType() == AirCraftName && Legs[x].getFrom() == From && Legs[x].getTo() == To) {
-										exp2 += X[y][x];
+										exp2[i] += X[y][x];
 										y = numberofAirCrafts;
 										x = numOfLegsOfTypeM;
 									}
@@ -248,18 +252,18 @@ public:
 							extract1D(Expression, From, To);
 							for (int x = 0; x < numberOfPaths; x++) {
 								if (Paths[x].getFrom() == From && Paths[x].getTo() == To) {
-									exp2 += Z[x];
+									exp2[i] += Z[x];
 									x = numberOfPaths;
 								}
 							}
 						}
 						else if (operationType == "P") {
 							string From, To, FareClassName;
-							extract2D2To1(Expression, FareClassName, From, To);
+							extract2D2To1(Expression, From, To, FareClassName);
 							for (int x = 0; x < numberOfPaths; x++) {
 								for (int y = 0; y < numberOfFareClasses; y++) {
 									if (FareClasses[y] == FareClassName && Paths[x].getFrom() == From && Paths[x].getTo() == To) {
-										exp2 += P[x][y];
+										exp2[i] += P[x][y];
 										y = numberOfFareClasses;
 										x = numberOfPaths;
 									}
@@ -272,7 +276,7 @@ public:
 							for (int x = 0; x < numberOfPaths; x++) {
 								for (int y = 0; y < numberOfFareClasses; y++) {
 									if (FareClasses[y] == FareClassName && Paths[x].getFrom() == From && Paths[x].getTo() == To) {
-										exp2 += Paths[x].getFareClasses()[y].getMph();
+										exp2[i] += Paths[x].getFareClasses()[y].getMph();
 										y = numberOfFareClasses;
 										x = numberOfPaths;
 									}
@@ -284,25 +288,23 @@ public:
 				//Check If end line
 				if (Constrain1[0] == '\n') {
 					if (Condition == "=") {
-						Model.add(exp1 == exp2);
+						Model.add(exp1[i] == exp2[i]);
 					}
 					else if (Condition == "<=") {
-						Model.add(exp1 <= exp2);
+						Model.add(exp1[i] <= exp2[i]);
 					}
 					else if (Condition == ">=") {
-						Model.add(exp1 >= exp2);
+						Model.add(exp1[i] >= exp2[i]);
 					}
 					else if (Condition == "<") {
-						Model.add(exp1 < exp2);
+						Model.add(exp1[i] < exp2[i]);
 					}
 					else if (Condition == ">") {
-						Model.add(exp1 > exp2);
+						Model.add(exp1[i] > exp2[i]);
 					}
 					operation = '+';
 					Condition.clear();
 					i++;
-					exp1 = exp3;
-					exp2 = exp3;
 				}
 				else if (Constrain1[0] != '<' && Constrain1[0] != '=' && Constrain1[0] != '>' && Constrain1[0] + Constrain1[1] != '<=' && Constrain1[0] + Constrain1[1] != '>=')
 					operation = Constrain1[0];
@@ -325,11 +327,11 @@ public:
 					if (isIntegerExpression(Constrain1[0])) {
 						string number = extractNumber(Constrain1);
 						int value = stringToInt(number);
-						exp1 -= value;
+						exp1[i] -= value;
 					}
 					else if (MinMax == "Min" || MinMax == "Max") {
 						Constrain1.erase(0, 4);
-						exp1 -= MinMaxValue(Constrain1.substr(0, Constrain1.find('}')+1), MinMax);
+						exp1[i] -= MinMaxValue(Constrain1.substr(0, Constrain1.find('}')+1), MinMax);
 						Constrain1.erase(0, Constrain1.find_first_of('}') + 1);
 					}
 					else if (Constrain1[0] == '|') {
@@ -341,7 +343,7 @@ public:
 							extract1D(Expression, From, To);
 							for (int x = 0; x < numberOfPaths; x++) {
 								if (Paths[x].getFrom() == From && Paths[x].getTo() == To) {
-									exp1 -= Paths[x].getLegCount();
+									exp1[i] -= Paths[x].getLegCount();
 
 									break;
 								}
@@ -360,7 +362,7 @@ public:
 								for (int y = 0; y < numberOfFareClasses; y++)
 								{
 									if (AirCrafts[x].getType() == AirCraftType && FareClasses[y] == FareClassName) {
-										exp1 -= AirCrafts[x].getFareClasses()[y].getCapah();
+										exp1[i] -= AirCrafts[x].getFareClasses()[y].getCapah();
 										x = numberofAirCrafts;
 										y = numberOfFareClasses;
 									}
@@ -375,7 +377,7 @@ public:
 							for (int x = 0; x < numberOfLegs; x++) {
 								for (int y = 0; y < numberofAirCrafts; y++) {
 									if (AirCrafts[y].getType() == AirCraftName && Legs[x].getFrom() == From && Legs[x].getTo() == To) {
-										exp1 -= X[y][x];
+										exp1[i] -= X[y][x];
 										y = numberofAirCrafts;
 										x = numOfLegsOfTypeM;
 									}
@@ -387,18 +389,18 @@ public:
 							extract1D(Expression, From, To);
 							for (int x = 0; x < numberOfPaths; x++) {
 								if (Paths[x].getFrom() == From && Paths[x].getTo() == To) {
-									exp1 -= Z[x];
+									exp1[i] -= Z[x];
 									x = numberOfPaths;
 								}
 							}
 						}
 						else if (operationType == "P") {
 							string From, To, FareClassName;
-							extract2D2To1(Expression, FareClassName, From, To);
+							extract2D2To1(Expression, From, To, FareClassName);
 							for (int x = 0; x < numberOfPaths; x++) {
 								for (int y = 0; y < numberOfFareClasses; y++) {
 									if (FareClasses[y] == FareClassName && Paths[x].getFrom() == From && Paths[x].getTo() == To) {
-										exp1 -= P[x][y];
+										exp1[i] -= P[x][y];
 										y = numberOfFareClasses;
 										x = numberOfPaths;
 									}
@@ -411,7 +413,7 @@ public:
 							for (int x = 0; x < numberOfPaths; x++) {
 								for (int y = 0; y < numberOfFareClasses; y++) {
 									if (FareClasses[y] == FareClassName && Paths[x].getFrom() == From && Paths[x].getTo() == To) {
-										exp1 -= Paths[x].getFareClasses()[y].getMph();
+										exp1[i] -= Paths[x].getFareClasses()[y].getMph();
 										y = numberOfFareClasses;
 										x = numberOfPaths;
 									}
@@ -425,11 +427,11 @@ public:
 					if (isIntegerExpression(Constrain1[0])) {
 						string number = extractNumber(Constrain1);
 						int value = stringToInt(number);
-						exp2 -= value;
+						exp2[i] -= value;
 					}
 					else if (MinMax == "Min" || MinMax == "Max") {
 						Constrain1.erase(0, 4);
-						exp2 -= MinMaxValue(Constrain1.substr(0, Constrain1.find('}')+1), MinMax);
+						exp2[i] -= MinMaxValue(Constrain1.substr(0, Constrain1.find('}')+1), MinMax);
 						Constrain1.erase(0, Constrain1.find_first_of('}') + 1);
 					}
 					else if (Constrain1[0] == '|') {
@@ -441,7 +443,7 @@ public:
 							extract1D(Expression, From, To);
 							for (int x = 0; x < numberOfPaths; x++) {
 								if (Paths[x].getFrom() == From && Paths[x].getTo() == To) {
-									exp2 -= Paths[x].getLegCount();
+									exp2[i] -= Paths[x].getLegCount();
 									Constrain1.erase(0, 1);
 									break;
 								}
@@ -459,7 +461,7 @@ public:
 								for (int y = 0; y < numberOfFareClasses; y++)
 								{
 									if (AirCrafts[x].getType() == AirCraftType && FareClasses[y] == FareClassName) {
-										exp2 -= AirCrafts[x].getFareClasses()[y].getCapah();
+										exp2[i] -= AirCrafts[x].getFareClasses()[y].getCapah();
 										x = numberofAirCrafts;
 										y = numberOfFareClasses;
 									}
@@ -474,7 +476,7 @@ public:
 							for (int x = 0; x < numberOfLegs; x++) {
 								for (int y = 0; y < numberofAirCrafts; y++) {
 									if (AirCrafts[y].getType() == AirCraftName && Legs[x].getFrom() == From && Legs[x].getTo() == To) {
-										exp2 -= X[y][x];
+										exp2[i] -= X[y][x];
 										y = numberofAirCrafts;
 										x = numOfLegsOfTypeM;
 									}
@@ -486,18 +488,18 @@ public:
 							extract1D(Expression, From, To);
 							for (int x = 0; x < numberOfPaths; x++) {
 								if (Paths[x].getFrom() == From && Paths[x].getTo() == To) {
-									exp2 -= Z[x];
+									exp2[i] -= Z[x];
 									x = numberOfPaths;
 								}
 							}
 						}
 						else if (operationType == "P") {
 							string From, To, FareClassName;
-							extract2D2To1(Expression, FareClassName, From, To);
+							extract2D2To1(Expression, From, To, FareClassName);
 							for (int x = 0; x < numberOfPaths; x++) {
 								for (int y = 0; y < numberOfFareClasses; y++) {
 									if (FareClasses[y] == FareClassName && Paths[x].getFrom() == From && Paths[x].getTo() == To) {
-										exp2 -= P[x][y];
+										exp2[i] -= P[x][y];
 										y = numberOfFareClasses;
 										x = numberOfPaths;
 									}
@@ -510,7 +512,7 @@ public:
 							for (int x = 0; x < numberOfPaths; x++) {
 								for (int y = 0; y < numberOfFareClasses; y++) {
 									if (FareClasses[y] == FareClassName && Paths[x].getFrom() == From && Paths[x].getTo() == To) {
-										exp2 -= Paths[x].getFareClasses()[y].getMph();
+										exp2[i] -= Paths[x].getFareClasses()[y].getMph();
 										y = numberOfFareClasses;
 										x = numberOfPaths;
 									}
@@ -522,26 +524,23 @@ public:
 				//Check If end line
 				if (Constrain1[0] == '\n') {
 					if (Condition == "=") {
-						Model.add(exp1 == exp2);
+						Model.add(exp1[i] == exp2[i]);
 					}
 					else if (Condition == "<=") {
-						Model.add(exp1 <= exp2);
+						Model.add(exp1[i] <= exp2[i]);
 					}
 					else if (Condition == ">=") {
-						Model.add(exp1 >= exp2);
+						Model.add(exp1[i] >= exp2[i]);
 					}
 					else if (Condition == "<") {
-						Model.add(exp1 < exp2);
+						Model.add(exp1[i] < exp2[i]);
 					}
 					else if (Condition == ">") {
-						Model.add(exp1 > exp2);
+						Model.add(exp1[i] > exp2[i]);
 					}
 					operation = '+';
 					Condition.clear();
 					i++;
-					exp1 = exp3;
-					exp2 = exp3;
-
 				}
 				else if (Constrain1[0] != '<' && Constrain1[0] != '=' && Constrain1[0] != '>' && Constrain1[0] + Constrain1[1] != '<=' && Constrain1[0] + Constrain1[1] != '>=')
 					operation = Constrain1[0];
@@ -564,11 +563,11 @@ public:
 					if (isIntegerExpression(Constrain1[0])) {
 						string number = extractNumber(Constrain1);
 						int value = stringToInt(number);
-						exp1 *= value;
+						exp1[i] *= value;
 					}
 					else if (MinMax == "Min" || MinMax == "Max") {
 						Constrain1.erase(0, 4);
-						exp1 *= MinMaxValue(Constrain1.substr(0, Constrain1.find('}')+1), MinMax);
+						exp1[i] *= MinMaxValue(Constrain1.substr(0, Constrain1.find('}')+1), MinMax);
 						Constrain1.erase(0, Constrain1.find_first_of('}') + 1);
 					}
 					else if (Constrain1[0] == '|') {
@@ -580,7 +579,7 @@ public:
 							extract1D(Expression, From, To);
 							for (int x = 0; x < numberOfPaths; x++) {
 								if (Paths[x].getFrom() == From && Paths[x].getTo() == To) {
-									exp1 *= Paths[x].getLegCount();
+									exp1[i] *= Paths[x].getLegCount();
 
 									break;
 								}
@@ -599,7 +598,7 @@ public:
 								for (int y = 0; y < numberOfFareClasses; y++)
 								{
 									if (AirCrafts[x].getType() == AirCraftType && FareClasses[y] == FareClassName) {
-										exp1 *= AirCrafts[x].getFareClasses()[y].getCapah();
+										exp1[i] *= AirCrafts[x].getFareClasses()[y].getCapah();
 										x = numberofAirCrafts;
 										y = numberOfFareClasses;
 									}
@@ -613,7 +612,7 @@ public:
 							for (int x = 0; x < numberOfPaths; x++) {
 								for (int y = 0; y < numberOfFareClasses; y++) {
 									if (FareClasses[y] == FareClassName && Paths[x].getFrom() == From && Paths[x].getTo() == To) {
-										exp1 *= Paths[x].getFareClasses()[y].getMph();
+										exp1[i] *= Paths[x].getFareClasses()[y].getMph();
 										y = numberOfFareClasses;
 										x = numberOfPaths;
 									}
@@ -627,11 +626,11 @@ public:
 					if (isIntegerExpression(Constrain1[0])) {
 						string number = extractNumber(Constrain1);
 						int value = stringToInt(number);
-						exp2 *= value;
+						exp2[i] *= value;
 					}
 					else if (MinMax == "Min" || MinMax == "Max") {
 						Constrain1.erase(0, 4);
-						exp2 *= MinMaxValue(Constrain1.substr(0, Constrain1.find('}')+1), MinMax);
+						exp2[i] *= MinMaxValue(Constrain1.substr(0, Constrain1.find('}')+1), MinMax);
 						Constrain1.erase(0, Constrain1.find_first_of('}') + 1);
 					}
 					else if (Constrain1[0] == '|') {
@@ -643,7 +642,7 @@ public:
 							extract1D(Expression, From, To);
 							for (int x = 0; x < numberOfPaths; x++) {
 								if (Paths[x].getFrom() == From && Paths[x].getTo() == To) {
-									exp2 *= Paths[x].getLegCount();
+									exp2[i] *= Paths[x].getLegCount();
 									Constrain1.erase(0, 1);
 									break;
 								}
@@ -661,7 +660,7 @@ public:
 								for (int y = 0; y < numberOfFareClasses; y++)
 								{
 									if (AirCrafts[x].getType() == AirCraftType && FareClasses[y] == FareClassName) {
-										exp2 *= AirCrafts[x].getFareClasses()[y].getCapah();
+										exp2[i] *= AirCrafts[x].getFareClasses()[y].getCapah();
 										x = numberofAirCrafts;
 										y = numberOfFareClasses;
 									}
@@ -675,7 +674,7 @@ public:
 							for (int x = 0; x < numberOfPaths; x++) {
 								for (int y = 0; y < numberOfFareClasses; y++) {
 									if (FareClasses[y] == FareClassName && Paths[x].getFrom() == From && Paths[x].getTo() == To) {
-										exp2 += Paths[x].getFareClasses()[y].getMph();
+										exp2[i] *= Paths[x].getFareClasses()[y].getMph();
 										y = numberOfFareClasses;
 										x = numberOfPaths;
 									}
@@ -687,26 +686,23 @@ public:
 				//Check If end line
 				if (Constrain1[0] == '\n') {
 					if (Condition == "=") {
-						Model.add(exp1 == exp2);
+						Model.add(exp1[i] == exp2[i]);
 					}
 					else if (Condition == "<=") {
-						Model.add(exp1 <= exp2);
+						Model.add(exp1[i] <= exp2[i]);
 					}
 					else if (Condition == ">=") {
-						Model.add(exp1 >= exp2);
+						Model.add(exp1[i] >= exp2[i]);
 					}
 					else if (Condition == "<") {
-						Model.add(exp1 < exp2);
+						Model.add(exp1[i] < exp2[i]);
 					}
 					else if (Condition == ">") {
-						Model.add(exp1 > exp2);
+						Model.add(exp1[i] > exp2[i]);
 					}
 					operation = '+';
 					Condition.clear();
 					i++;
-					exp1 = exp3;
-					exp2 = exp3;
-
 				}
 				else if (Constrain1[0] != '<' && Constrain1[0] != '=' && Constrain1[0] != '>' && Constrain1[0] + Constrain1[1] != '<=' && Constrain1[0] + Constrain1[1] != '>=')
 					operation = Constrain1[0];
@@ -729,11 +725,11 @@ public:
 					if (isIntegerExpression(Constrain1[0])) {
 						string number = extractNumber(Constrain1);
 						int value = stringToInt(number);
-						exp1 /= value;
+						exp1[i] /= value;
 					}
 					else if (MinMax == "Min" || MinMax == "Max") {
 						Constrain1.erase(0, 4);
-						exp1 /= MinMaxValue(Constrain1.substr(0, Constrain1.find('}')+1), MinMax);
+						exp1[i] /= MinMaxValue(Constrain1.substr(0, Constrain1.find('}')+1), MinMax);
 						Constrain1.erase(0, Constrain1.find_first_of('}') + 1);
 					}
 					else if (Constrain1[0] == '|') {
@@ -745,7 +741,7 @@ public:
 							extract1D(Expression, From, To);
 							for (int x = 0; x < numberOfPaths; x++) {
 								if (Paths[x].getFrom() == From && Paths[x].getTo() == To) {
-									exp1 /= Paths[x].getLegCount();
+									exp1[i] /= Paths[x].getLegCount();
 
 									break;
 								}
@@ -764,7 +760,7 @@ public:
 								for (int y = 0; y < numberOfFareClasses; y++)
 								{
 									if (AirCrafts[x].getType() == AirCraftType && FareClasses[y] == FareClassName) {
-										exp1 /= AirCrafts[x].getFareClasses()[y].getCapah();
+										exp1[i] /= AirCrafts[x].getFareClasses()[y].getCapah();
 										x = numberofAirCrafts;
 										y = numberOfFareClasses;
 									}
@@ -778,7 +774,7 @@ public:
 							for (int x = 0; x < numberOfPaths; x++) {
 								for (int y = 0; y < numberOfFareClasses; y++) {
 									if (FareClasses[y] == FareClassName && Paths[x].getFrom() == From && Paths[x].getTo() == To) {
-										exp1 /= Paths[x].getFareClasses()[y].getMph();
+										exp1[i] /= Paths[x].getFareClasses()[y].getMph();
 										y = numberOfFareClasses;
 										x = numberOfPaths;
 									}
@@ -792,11 +788,11 @@ public:
 					if (isIntegerExpression(Constrain1[0])) {
 						string number = extractNumber(Constrain1);
 						int value = stringToInt(number);
-						exp2 /= value;
+						exp2[i] /= value;
 					}
 					else if (MinMax == "Min" || MinMax == "Max") {
 						Constrain1.erase(0, 4);
-						exp2 /= MinMaxValue(Constrain1.substr(0, Constrain1.find('}')+1), MinMax);
+						exp2[i] /= MinMaxValue(Constrain1.substr(0, Constrain1.find('}')+1), MinMax);
 						Constrain1.erase(0, Constrain1.find_first_of('}') + 1);
 					}
 					else if (Constrain1[0] == '|') {
@@ -808,7 +804,7 @@ public:
 							extract1D(Expression, From, To);
 							for (int x = 0; x < numberOfPaths; x++) {
 								if (Paths[x].getFrom() == From && Paths[x].getTo() == To) {
-									exp2 /= Paths[x].getLegCount();
+									exp2[i] /= Paths[x].getLegCount();
 									Constrain1.erase(0, 1);
 									break;
 								}
@@ -826,7 +822,7 @@ public:
 								for (int y = 0; y < numberOfFareClasses; y++)
 								{
 									if (AirCrafts[x].getType() == AirCraftType && FareClasses[y] == FareClassName) {
-										exp2 += AirCrafts[x].getFareClasses()[y].getCapah();
+										exp2[i] += AirCrafts[x].getFareClasses()[y].getCapah();
 										x = numberofAirCrafts;
 										y = numberOfFareClasses;
 									}
@@ -840,7 +836,7 @@ public:
 							for (int x = 0; x < numberOfPaths; x++) {
 								for (int y = 0; y < numberOfFareClasses; y++) {
 									if (FareClasses[y] == FareClassName && Paths[x].getFrom() == From && Paths[x].getTo() == To) {
-										exp2 /= Paths[x].getFareClasses()[y].getMph();
+										exp2[i] /= Paths[x].getFareClasses()[y].getMph();
 										y = numberOfFareClasses;
 										x = numberOfPaths;
 									}
@@ -852,25 +848,23 @@ public:
 				//Check If end line
 				if (Constrain1[0] == '\n') {
 					if (Condition == "=") {
-						Model.add(exp1 == exp2);
+						Model.add(exp1[i] == exp2[i]);
 					}
 					else if (Condition == "<=") {
-						Model.add(exp1 <= exp2);
+						Model.add(exp1[i] <= exp2[i]);
 					}
 					else if (Condition == ">=") {
-						Model.add(exp1 >= exp2);
+						Model.add(exp1[i] >= exp2[i]);
 					}
 					else if (Condition == "<") {
-						Model.add(exp1 < exp2);
+						Model.add(exp1[i] < exp2[i]);
 					}
 					else if (Condition == ">") {
-						Model.add(exp1 > exp2);
+						Model.add(exp1[i] > exp2[i]);
 					}
 					operation = '+';
 					Condition.clear();
 					i++;
-					exp1 = exp3;
-					exp2 = exp3;
 				}
 				else if (Constrain1[0] != '<' && Constrain1[0] != '=' && Constrain1[0] != '>' && Constrain1[0] + Constrain1[1] != '<=' && Constrain1[0] + Constrain1[1] != '>=')
 					operation = Constrain1[0];
@@ -892,13 +886,13 @@ public:
 #pragma endregion
 		IloCplex cplex(Model);
 		cplex.exportModel("model.lp");
-
+		cplex.setOut(env.getNullStream());
 		if (!cplex.solve()) {
 			env.error() << "Failed to optimize the Master Problem!!!" << endl;
 			return false;
 		}
 
-		double obj = cplex.getObjValue();
+		long long obj = cplex.getObjValue();
 
 		auto end = chrono::high_resolution_clock::now();
 		auto Elapsed = chrono::duration_cast<chrono::milliseconds>(end - start);
@@ -911,17 +905,9 @@ public:
 				double Pval = cplex.getValue(P[i][j]);
 				if (Pval > 0)
 				{
-					cout << "\t\t\t P[" << i << "][" << j << "] = " << Pval << endl;
+					cout << "\t\t\t P[" << Paths[i].getFrom() << "," << Paths[i].getTo() << "][" << FareClasses[j] << "] = " << Pval << endl;
 				}
 			}
-		}
-		for (int i = 0; i < numberOfPaths; i++) {
-			double Zval = cplex.getValue(Z[i]);
-			if (Zval > 0)
-			{
-				cout << "\t\t\t Z[" << i << "] = " << Zval << endl;
-			}
-
 		}
 		for (int i = 0; i < numberofAirCrafts; i++)
 		{
@@ -930,7 +916,7 @@ public:
 				double Xval = cplex.getValue(X[i][x]);
 				if (Xval > 0)
 				{
-					cout << "\t\t\t X[" << i << "][" << x << "] = " << Xval << endl;
+					cout << "\t\t\t X[" << AirCrafts[i].getType() << "][" << Legs[x].getFrom() << "," << Legs[x].getTo() << "] = " << Xval << endl;
 				}
 			}
 		}

@@ -50,4 +50,7 @@
     <Text Include="price.txt" />
     <Text Include="Output.txt" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="model.lp" />
+  </ItemGroup>
 </Project>
