@@ -137,7 +137,7 @@ public:
 							for (int x = 0; x < numberOfLegs; x++) {
 								for (int y = 0; y < numberofAirCrafts; y++) {
 									if (AirCrafts[y].getType() == AirCraftName && Legs[x].getFrom() == From && Legs[x].getTo() == To) {
-										exp1 += X[x][y];
+										exp1 += X[y][x];
 										y = numberofAirCrafts;
 										x = numOfLegsOfTypeM;
 									}
@@ -236,7 +236,7 @@ public:
 							for (int x = 0; x < numberOfLegs; x++) {
 								for (int y = 0; y < numberofAirCrafts; y++) {
 									if (AirCrafts[y].getType() == AirCraftName && Legs[x].getFrom() == From && Legs[x].getTo() == To) {
-										exp2 += X[x][y];
+										exp2 += X[y][x];
 										y = numberofAirCrafts;
 										x = numOfLegsOfTypeM;
 									}
@@ -375,7 +375,7 @@ public:
 							for (int x = 0; x < numberOfLegs; x++) {
 								for (int y = 0; y < numberofAirCrafts; y++) {
 									if (AirCrafts[y].getType() == AirCraftName && Legs[x].getFrom() == From && Legs[x].getTo() == To) {
-										exp1 -= X[x][y];
+										exp1 -= X[y][x];
 										y = numberofAirCrafts;
 										x = numOfLegsOfTypeM;
 									}
@@ -474,7 +474,7 @@ public:
 							for (int x = 0; x < numberOfLegs; x++) {
 								for (int y = 0; y < numberofAirCrafts; y++) {
 									if (AirCrafts[y].getType() == AirCraftName && Legs[x].getFrom() == From && Legs[x].getTo() == To) {
-										exp2 -= X[x][y];
+										exp2 -= X[y][x];
 										y = numberofAirCrafts;
 										x = numOfLegsOfTypeM;
 									}
@@ -891,6 +891,8 @@ public:
 		}
 #pragma endregion
 		IloCplex cplex(Model);
+		cplex.exportModel("model.lp");
+
 		if (!cplex.solve()) {
 			env.error() << "Failed to optimize the Master Problem!!!" << endl;
 			return false;
