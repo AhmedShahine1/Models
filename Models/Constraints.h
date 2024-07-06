@@ -59,18 +59,15 @@ public:
 			{
 				if (j == numberofAirCrafts - 1)
 				{
-					cout << "X[" << AirCrafts[j].getType() << "]" << "[" << legsOfTypeM[i].getFrom() << "," << legsOfTypeM[i].getTo() << "]=1" << endl;
 					Output += "X[" + AirCrafts[j].getType() + "]" + "[" + legsOfTypeM[i].getFrom() + "," + legsOfTypeM[i].getTo() + "]=1";
 				}
 				else
 				{
-					cout << "X[" << AirCrafts[j].getType() << "]" << "[" << legsOfTypeM[i].getFrom() << "," << legsOfTypeM[i].getTo() << "]" << "+";
 					Output += "X[" + AirCrafts[j].getType() + "]" + "[" + legsOfTypeM[i].getFrom() + "," + legsOfTypeM[i].getTo() + "]" + "+";
 				}
 			}
 			WriteData(Output);
 		}
-		cout << endl << "----------------------------------------" << endl;
 	}
 
 	void Constrain_2()
@@ -82,44 +79,36 @@ public:
 			{
 				if (j == numberofAirCrafts - 1)
 				{
-					cout << "X[" << AirCrafts[j].getType() << "]" << "[" << legsOfTypeO[i].getFrom() << "," << legsOfTypeO[i].getTo() << "]<=1";
 					Output += "X[" + AirCrafts[j].getType() + "]" + "[" + legsOfTypeO[i].getFrom() + "," + legsOfTypeO[i].getTo() + "]<=1";
 				}
 				else
 				{
-					cout << "X[" << AirCrafts[j].getType() << "]" << "[" << legsOfTypeO[i].getFrom() << "," << legsOfTypeO[i].getTo() << "]" << "+";
 					Output += "X[" + AirCrafts[j].getType() + "]" + "[" + legsOfTypeO[i].getFrom() + "," + legsOfTypeO[i].getTo() + "]" + "+";
 				}
 			}
 			WriteData(Output);
 		}
-		cout << endl << "----------------------------------------" << endl;
 	}
 
 	void Constrain_3() {
 		for (int i = 0; i < numOfPathsWithLegO; i++)
 		{
 			string Output;
-			cout << "Z[" << pathsWithTypeO[i].getFrom() << "," << pathsWithTypeO[i].getTo() << "]-";
 			Output += "Z[" + pathsWithTypeO[i].getFrom() + "," + pathsWithTypeO[i].getTo() + "]-";
 			for (int j = 0; j < numOfLegsOfTypeO; j++) {
 
 				for (int x = 0; x < numberofAirCrafts; x++)
 				{
 					if (x == numberofAirCrafts - 1) {
-						cout << "X[" << AirCrafts[x].getType() << "][" << legsOfTypeO[j].getFrom() << "," << legsOfTypeO[j].getTo();
-						cout << "]<=0" << endl;
 						Output += "X[" + AirCrafts[x].getType() + "][" + legsOfTypeO[j].getFrom() + "," + legsOfTypeO[j].getTo() + "]<=0";
 					}
 					else {
-						cout << "X[" << AirCrafts[x].getType() << "][" << legsOfTypeO[j].getFrom() << "," << legsOfTypeO[j].getTo() << "]-";
 						Output += "X[" + AirCrafts[x].getType() + "][" + legsOfTypeO[j].getFrom() + "," + legsOfTypeO[j].getTo() + "]-";
 					}
 				}
 			}
 			WriteData(Output);
 		}
-		cout << endl << "----------------------------------------" << endl;
 	}
 
 	void Constrain_4()
@@ -128,17 +117,14 @@ public:
 		for (int optional_path_repeater = 0; optional_path_repeater < numOfPathsWithLegO; optional_path_repeater++)
 		{
 			string Output;
-			cout << "Z[" << pathsWithTypeO[optional_path_repeater].getFrom() << "," << pathsWithTypeO[optional_path_repeater].getTo() << "]" << "-";
 			Output += "Z[" + pathsWithTypeO[optional_path_repeater].getFrom() + "," + pathsWithTypeO[optional_path_repeater].getTo() + "]" + "-";
 			for (int aircrafts = 0; aircrafts < numberofAirCrafts; aircrafts++)
 			{
 				for (int optional_legs = 0; optional_legs < numOfLegsOfTypeO; optional_legs++)
 				{
-					cout << "X[" << AirCrafts[aircrafts].getType() << "][" << legsOfTypeO[optional_legs].getFrom() << "," << legsOfTypeO[optional_legs].getTo() << "]";
 					Output += "X[" + AirCrafts[aircrafts].getType() + "][" + legsOfTypeO[optional_legs].getFrom() + "," + legsOfTypeO[optional_legs].getTo() + "]";
 					if (aircrafts != (numberofAirCrafts - 1))
 					{
-						cout << "-";
 						Output += "-";
 					}
 				}//end last loop 
@@ -146,11 +132,9 @@ public:
 			}// end second loop 
 
 
-			cout << ">=" << "1-|L[" << pathsWithTypeO[optional_path_repeater].getFrom() << "," << pathsWithTypeO[optional_path_repeater].getTo() << "]|" << endl;
 			Output += ">=1-|L[" + pathsWithTypeO[optional_path_repeater].getFrom() + "," + pathsWithTypeO[optional_path_repeater].getTo() + "]|";
 			WriteData(Output);
 		}//end first loop 
-		cout << endl << "----------------------------------------" << endl;
 	}//end of function
 
 	void Constrain_5()
@@ -160,33 +144,26 @@ public:
 			string Output;
 			for (int aircraft = 0; aircraft < numberofAirCrafts; aircraft++)
 			{
-				cout << "X[" << AirCrafts[aircraft].getType() << "][" << legsOfTypeO[optional_legs_repeater].getFrom() << "," << legsOfTypeO[optional_legs_repeater].getTo()
-					<< "]";
 				Output += "X[" + AirCrafts[aircraft].getType() + "][" + legsOfTypeO[optional_legs_repeater].getFrom() + "," + legsOfTypeO[optional_legs_repeater].getTo() + "]";
 				// print the + for the summation equation 
 				if (aircraft != (numberofAirCrafts - 1))
 				{
-					cout << "+";
 					Output += "+";
 				}
 			}
 
 
-			cout << "<=";
 			Output += "<=";
 			for (int optional_paths_repeater = 0; optional_paths_repeater < numOfPathsWithLegO; ++optional_paths_repeater)
 			{
-				cout << "Z[" << pathsWithTypeO[optional_paths_repeater].getFrom() << "," << pathsWithTypeO[optional_paths_repeater].getTo() << "]";
 				Output += "Z[" + pathsWithTypeO[optional_paths_repeater].getFrom() + "," + pathsWithTypeO[optional_paths_repeater].getTo() + "]";
 				if (optional_paths_repeater != (numOfPathsWithLegO - 1)) {
-					cout << "+";
 					Output += "+";
 				}
 
 			}
 			WriteData(Output);
 		}
-		cout << endl << "----------------------------------------" << endl;
 	}
 
 	void Constrain_6() {
@@ -255,10 +232,8 @@ public:
 					}
 				}
 				WriteData(Output);
-				cout << Output << endl;
 			}
 		}
-		cout << "----------------------------------------------------------------------------------------" << endl;
 	}
 
 	void Constrain_7() {
@@ -266,23 +241,19 @@ public:
 		{
 			string Output;
 			for (int j = 0; j < numberOfFareClasses; j++) {
-				cout << "P[" << pathsWithTypeO[i].getFrom() << "," << pathsWithTypeO[i].getTo() << "][" << FareClasses[j] << "]<=Min{M[" << pathsWithTypeO[i].getFrom() << "," << pathsWithTypeO[i].getTo() << "][" << FareClasses[j] << "],";
 				Output = "P[" + pathsWithTypeO[i].getFrom() + "," + pathsWithTypeO[i].getTo() + "][" + FareClasses[j] + "]<=Min{M[" + pathsWithTypeO[i].getFrom() + "," + pathsWithTypeO[i].getTo() + "][" + FareClasses[j] + "],";
 				for (int x = 0; x < numberofAirCrafts; x++)
 				{
-					cout << "Cap[" << AirCrafts[x].getType() << "," << FareClasses[j] << "]";
 					Output += "Cap[" + AirCrafts[x].getType() + "," + FareClasses[j] + "]";
 					if (x != numberofAirCrafts - 1) {
 						cout << ",";
 						Output += ",";
 					}
 				}
-				cout << "}*Z[" << pathsWithTypeO[i].getFrom() << "," << pathsWithTypeO[i].getTo() << "]" << endl;
 				Output += "}*Z[" + pathsWithTypeO[i].getFrom() + "," + pathsWithTypeO[i].getTo() + "]";
 				WriteData(Output);
 			}
 		}
-		cout << endl << "----------------------------------------" << endl;
 	}
 
 	void Constrain_8() {
@@ -290,12 +261,10 @@ public:
 		{
 			string Output;
 			for (int j = 0; j < numberOfFareClasses; j++) {
-				cout << "P[" << Paths[i].getFrom() << "," << Paths[i].getTo() << "][" << FareClasses[j] << "]<=M[" << Paths[i].getFrom() << "," << Paths[i].getTo() << "][" << FareClasses[j] << "]" << endl;
 				Output = "P[" + Paths[i].getFrom() + "," + Paths[i].getTo() + "][" + FareClasses[j] + "]<=M[" + Paths[i].getFrom() + "," + Paths[i].getTo() + "][" + FareClasses[j] + "]";
 				WriteData(Output);
 			}
 		}
-		cout << endl << "----------------------------------------" << endl;
 	}
 
 	void Constrain_9() {
@@ -303,138 +272,112 @@ public:
 		{
 			string Output;
 			for (int j = i + 1; j < numberOfLegs; j++) {
-				cout << "Sigma[" << Legs[i].getFrom() << "," << Legs[i].getTo() << "][" << Legs[j].getFrom() << "," << Legs[j].getTo() << "]+Sigma[" << Legs[j].getFrom() << "," << Legs[j].getTo() << "][" << Legs[i].getFrom() << "," << Legs[i].getTo() << "]=1" << endl;
 				Output = "Sigma[" + Legs[i].getFrom() + "," + Legs[i].getTo() + "][" + Legs[j].getFrom() + "," + Legs[j].getTo() + "]+Sigma[" + Legs[j].getFrom() + "," + Legs[j].getTo() + "][" + Legs[i].getFrom() + "," + Legs[i].getTo() + "]=1";
 				WriteData(Output);
 			}
 		}
-		cout << endl << "----------------------------------------" << endl;
 	}
 
 	void Constrain_10() {
 		for (int i = 0; i < CountV; i++)
 		{
 			string Output;
-				cout << "Sigma[" << V[i][0].getFrom() << "," << V[i][0].getTo() << "][" << V[i][1].getFrom() << "," << V[i][1].getTo() << "]=1" << endl;
 				Output = "Sigma[" + V[i][0].getFrom() + "," + V[i][0].getTo() + "][" + V[i][1].getFrom() + "," + V[i][1].getTo() + "]=1";
 				WriteData(Output);
 		}
-		cout << endl << "----------------------------------------" << endl;
 	}
 
 	void Constrain_11() {
 		for (int i = 0; i < CountV; i++)
 		{
 			string Output;
-			cout << "ATL[" << V[i][1].getFrom() << "," << V[i][1].getTo() << "]>=ATL[" << V[i][0].getFrom() << "," << V[i][0].getTo() << "]+S[" << V[i][0].getFrom() << "," << V[i][0].getTo() <<"][" << V[i][1].getFrom() << "," << V[i][1].getTo()<<"]" << endl;
 			Output = "ATL[" + V[i][1].getFrom() + "," + V[i][1].getTo() + "]>=ATL[" + V[i][0].getFrom() + "," + V[i][0].getTo() + "]+S[" + V[i][0].getFrom() + "," + V[i][0].getTo() + "][" + V[i][1].getFrom() + "," + V[i][1].getTo() +"]";
 			WriteData(Output);
 		}
-		cout << endl << "----------------------------------------" << endl;
 	}
 
 	void Constrain_12() {
 		for (int i = 0; i < CountU; i++)
 		{
 			string Output;
-			cout << "ATL[" << U[i][1].getFrom() << "," << U[i][1].getTo() << "]>=ATL[" << U[i][0].getFrom() << "," << U[i][0].getTo() << "]+S[" << U[i][0].getFrom() << "," << U[i][0].getTo() << "][" << U[i][1].getFrom() << "," << U[i][1].getTo() << "]*Sigma[" << U[i][0].getFrom() << "," << U[i][0].getTo() << "][" << U[i][1].getFrom() << "," << U[i][1].getTo() << "]-TL["<< U[i][0].getFrom() << "," << U[i][0].getTo() <<"]*Sigma["<< U[i][1].getFrom() << "," << U[i][1].getTo() << "][" << U[i][0].getFrom() << "," << U[i][0].getTo() << "]+TE["<< U[i][1].getFrom() << "," << U[i][1].getTo()<<"]*Sigma[" << U[i][1].getFrom() << "," << U[i][1].getTo() << "][" << U[i][0].getFrom() << "," << U[i][0].getTo() << "]" << endl;
 			Output = "ATL[" + U[i][1].getFrom() + "," + U[i][1].getTo() + "]>=ATL[" + U[i][0].getFrom() + "," + U[i][0].getTo() + "]+S[" + U[i][0].getFrom() + "," + U[i][0].getTo() + "][" + U[i][1].getFrom() + "," + U[i][1].getTo() + "]*Sigma[" + U[i][0].getFrom() + "," + U[i][0].getTo() + "][" + U[i][1].getFrom() + "," + U[i][1].getTo() + "]-TL[" + U[i][0].getFrom() + "," + U[i][0].getTo() + "]*Sigma[" + U[i][1].getFrom() + "," + U[i][1].getTo() + "][" + U[i][0].getFrom() + "," + U[i][0].getTo() + "]+TE[" + U[i][1].getFrom() + "," + U[i][1].getTo() + "]*Sigma[" + U[i][1].getFrom() + "," + U[i][1].getTo() + "][" + U[i][0].getFrom() + "," + U[i][0].getTo() + "]";
 			WriteData(Output);
-			cout << "ATL[" << U[i][0].getFrom() << "," << U[i][0].getTo() << "]>=ATL[" << U[i][1].getFrom() << "," << U[i][1].getTo() << "]+S[" << U[i][1].getFrom() << "," << U[i][1].getTo() << "][" << U[i][0].getFrom() << "," << U[i][0].getTo() << "]*Sigma[" << U[i][1].getFrom() << "," << U[i][1].getTo() << "][" << U[i][0].getFrom() << "," << U[i][0].getTo() << "]-TL[" << U[i][1].getFrom() << "," << U[i][1].getTo() << "]*Sigma[" << U[i][0].getFrom() << "," << U[i][0].getTo() << "][" << U[i][1].getFrom() << "," << U[i][1].getTo() << "]+TE[" << U[i][0].getFrom() << "," << U[i][0].getTo() << "]*Sigma[" << U[i][0].getFrom() << "," << U[i][0].getTo() << "][" << U[i][1].getFrom() << "," << U[i][1].getTo() << "]" << endl;
 			Output = "ATL[" + U[i][0].getFrom() + "," + U[i][0].getTo() + "]>=ATL[" + U[i][1].getFrom() + "," + U[i][1].getTo() + "]+S[" + U[i][1].getFrom() + "," + U[i][1].getTo() + "][" + U[i][0].getFrom() + "," + U[i][0].getTo() + "]*Sigma[" + U[i][1].getFrom() + "," + U[i][1].getTo() + "][" + U[i][0].getFrom() + "," + U[i][0].getTo() + "]-TL[" + U[i][1].getFrom() + "," + U[i][1].getTo() + "]*Sigma[" + U[i][0].getFrom() + "," + U[i][0].getTo() + "][" + U[i][1].getFrom() + "," + U[i][1].getTo() + "]+TE[" + U[i][0].getFrom() + "," + U[i][0].getTo() + "]*Sigma[" + U[i][0].getFrom() + "," + U[i][0].getTo() + "][" + U[i][1].getFrom() + "," + U[i][1].getTo() + "]";
 			WriteData(Output);
 
 		}
-		cout << endl << "----------------------------------------" << endl;
 	}
 
 	void Constrain_13() {
 		for (int j = 0; j < numberOfLegs; j++)
 		{
 			string Output;
-			cout << "Alpha[" << Legs[j].getFrom() << "," << Legs[j].getTo() << "]>=TT[" << Legs[j].getFrom() << "," << Legs[j].getTo() << "]-ATL[" << Legs[j].getFrom() << "," << Legs[j].getTo() << "]" << endl;
 			Output = "Alpha[" + Legs[j].getFrom() + "," + Legs[j].getTo() + "]>=TT[" + Legs[j].getFrom() + "," + Legs[j].getTo() + "]-ATL[" + Legs[j].getFrom() + "," + Legs[j].getTo() + "]";
 			WriteData(Output);
 		}
-		cout << endl << "----------------------------------------" << endl;
 	}
 
 	void Constrain_14() {
 		for (int j = 0; j < numberOfLegs; j++)
 		{
 			string Output;
-			cout << "0<=Alpha[" << Legs[j].getFrom() << "," << Legs[j].getTo() << "]" << endl;
-			cout << "Alpha[" << Legs[j].getFrom() << ", " << Legs[j].getTo() << "] <= TT[" << Legs[j].getFrom() << ", " << Legs[j].getTo() << "] - TE[" << Legs[j].getFrom() << ", " << Legs[j].getTo() << "]" << endl;
 			Output = "0<=Alpha[" + Legs[j].getFrom() + "," + Legs[j].getTo() + "]\nAlpha[" + Legs[j].getFrom() + "," + Legs[j].getTo() + "]<=TT[" + Legs[j].getFrom() + "," + Legs[j].getTo() + "]-TE[" + Legs[j].getFrom() + "," + Legs[j].getTo() + "]";
 			WriteData(Output);
 		}
-		cout << endl << "----------------------------------------" << endl;
 	}
 
 	void Constrain_15() {
 		for (int j = 0; j < numberOfLegs; j++)
 		{
 			string Output;
-			cout << "Byta[" << Legs[j].getFrom() << "," << Legs[j].getTo() << "]>=ATL[" << Legs[j].getFrom() << "," << Legs[j].getTo() << "]-TT[" << Legs[j].getFrom() << "," << Legs[j].getTo() << "]" << endl;
 			Output = "Byta[" + Legs[j].getFrom() + "," + Legs[j].getTo() + "]>=ATL[" + Legs[j].getFrom() + "," + Legs[j].getTo() + "]-TT[" + Legs[j].getFrom() + "," + Legs[j].getTo() + "]";
 			WriteData(Output);
 		}
-		cout << endl << "----------------------------------------" << endl;
 	}
 
 	void Constrain_16() {
 		for (int j = 0; j < numberOfLegs; j++)
 		{
 			string Output;
-			cout << "0<=Byta[" << Legs[j].getFrom() << "," << Legs[j].getTo() << "]\nByta[" << Legs[j].getFrom() << "," << Legs[j].getTo() << "]<=TL[" << Legs[j].getFrom() << "," << Legs[j].getTo() << "]-TT[" << Legs[j].getFrom() << "," << Legs[j].getTo() << "]" << endl;
 			Output = "0<=Byta[" + Legs[j].getFrom() + "," + Legs[j].getTo() + "]\nByta[" + Legs[j].getFrom() + "," + Legs[j].getTo() + "]<=TL[" + Legs[j].getFrom() + "," + Legs[j].getTo() + "]-TT[" + Legs[j].getFrom() + "," + Legs[j].getTo() + "]";
 			WriteData(Output);
 		}
-		cout << endl << "----------------------------------------" << endl;
 	}
 
 	void Constrain_17() {
 		for (int j = 0; j < numberOfLegs; j++)
 		{
 			string Output;
-			cout << "ATL[" << Legs[j].getFrom() << "," << Legs[j].getTo() << "]=TT[" << Legs[j].getFrom() << "," << Legs[j].getTo() << "]-Alpha[" << Legs[j].getFrom() << "," << Legs[j].getTo() << "]+Byta[" << Legs[j].getFrom() << "," << Legs[j].getTo() << "]" << endl;
 			Output = "ATL[" + Legs[j].getFrom() + "," + Legs[j].getTo() + "]=TT[" + Legs[j].getFrom() + "," + Legs[j].getTo() + "]-Alpha[" + Legs[j].getFrom() + "," + Legs[j].getTo() + "]+Byta[" + Legs[j].getFrom() + "," + Legs[j].getTo() + "]";
 			WriteData(Output);
 		}
-		cout << endl << "----------------------------------------" << endl;
 	}
 
 	void Constrain_18() {
 		for (int j = 0; j < numberOfLegs; j++)
 		{
 			string Output;
-			cout << "TE[" << Legs[j].getFrom() << "," << Legs[j].getTo() << "]<=ATL[" << Legs[j].getFrom() << "," << Legs[j].getTo() << "]\nATL[" << Legs[j].getFrom() << "," << Legs[j].getTo() << "]<=TL[" << Legs[j].getFrom() << "," << Legs[j].getTo() << "]" << endl;
 			Output = "TE[" + Legs[j].getFrom() + "," + Legs[j].getTo() + "]<=ATL[" + Legs[j].getFrom() + "," + Legs[j].getTo() + "]\nATL[" + Legs[j].getFrom() + "," + Legs[j].getTo() + "]<=TL[" + Legs[j].getFrom() + "," + Legs[j].getTo() + "]";
 			WriteData(Output);
 		}
-		cout << endl << "----------------------------------------" << endl;
 	}
 
 	void Constrain_19() {
 		for (int j = 0; j < numberOfLegs; j++)
 		{
 			string Output;
-			cout << "Alpha[" << Legs[j].getFrom() << "," << Legs[j].getTo() << "]>=0" << endl;
 			Output = "Alpha[" + Legs[j].getFrom() + "," + Legs[j].getTo() + "]>=0";
 			WriteData(Output);
 		}
-		cout << endl << "----------------------------------------" << endl;
 	}
 
 	void Constrain_20() {
 		for (int j = 0; j < numberOfLegs; j++)
 		{
 			string Output;
-			cout << "Byta[" << Legs[j].getFrom() << "," << Legs[j].getTo() << "]>=0" << endl;
 			Output = "Byta[" + Legs[j].getFrom() + "," + Legs[j].getTo() + "]>=0";
 			WriteData(Output);
 		}
-		cout << endl << "----------------------------------------" << endl;
 	}
 
 	void WriteData(string data) {

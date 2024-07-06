@@ -1,8 +1,6 @@
 #pragma once
 #include"ilcplex/ilocplex.h";
 #include<chrono>;
-typedef IloArray<IloNumVarArray> NumVar2D; // enables us to defien a 2-D decision varialbe
-typedef IloArray<NumVar2D> NumVar3D;
 
 class Cplex
 {
@@ -94,14 +92,13 @@ public:
 #pragma endregion
 #pragma region Constraints
 		//Constrain1
-		string Constrain1 = readFromFile();
+		string Constrain1 = readDataFromFile();
 		int countConstrain1 = countLines(Constrain1);
 		char operation = '+';
 		int i = 0;
 		string Condition1;
 		IloExpr* exp2 = new IloExpr[countConstrain1];
 		IloExpr* exp3 = new IloExpr[countConstrain1];
-		IloExpr* exp4 = new IloExpr[countConstrain1];
 		// Initialize each IloExpr in the array
 		for (int i = 0; i < countConstrain1; ++i) {
 			exp2[i] = IloExpr(env);
@@ -114,7 +111,7 @@ public:
 			case '+':
 			{
 				if (Condition1.empty() ) {
-					if (isIntegerExpression(Constrain1[0])) {
+					if (isInteger(Constrain1[0])) {
 						string number = extractNumber(Constrain1);
 						int value = stringToInt(number);
 						exp2[i] += value;
@@ -186,7 +183,7 @@ public:
 						}
 						else if (operationType == "P") {
 							string From, To, FareClassName;
-							extractP(Expression, From, To, FareClassName);
+							extractP_M(Expression, From, To, FareClassName);
 							for (int x = 0; x < numberOfPaths; x++) {
 								for (int y = 0; y < numberOfFareClasses; y++) {
 									if (FareClasses[y] == FareClassName && Paths[x].getFrom() == From && Paths[x].getTo() == To) {
@@ -199,7 +196,7 @@ public:
 						}
 						else if (operationType == "M") {
 							string From, To, FareClassName;
-							extractP(Expression, From, To, FareClassName);
+							extractP_M(Expression, From, To, FareClassName);
 							for (int x = 0; x < numberOfPaths; x++) {
 								for (int y = 0; y < numberOfFareClasses; y++) {
 									if (FareClasses[y] == FareClassName && Paths[x].getFrom() == From && Paths[x].getTo() == To) {
@@ -212,7 +209,7 @@ public:
 						}
 						else if (operationType == "Sigma") {
 							string From1, To1, From2, To2;
-							extractSigma(Expression, From1, To1, From2, To2);
+							extractSigma_S(Expression, From1, To1, From2, To2);
 							for (int x = 0; x < numberOfLegs; x++) {
 								for (int y = 0; y < numberOfLegs; y++) {
 									if (Legs[x].getFrom() == From1 && Legs[x].getTo() == To1 && Legs[y].getFrom() == From2 && Legs[y].getTo() == To2) {
@@ -243,7 +240,7 @@ public:
 								Constrain1.erase(0, 1);
 								Expression = extractExpression(Constrain1);
 								string From1, To1, From2, To2;
-								extractSigma(Expression, From1, To1, From2, To2);
+								extractSigma_S(Expression, From1, To1, From2, To2);
 								for (int x = 0; x < numberOfLegs; x++) {
 									for (int y = 0; y < numberOfLegs; y++) {
 										if (Legs[x].getFrom() == From1 && Legs[x].getTo() == To1 && Legs[y].getFrom() == From2 && Legs[y].getTo() == To2) {
@@ -271,7 +268,7 @@ public:
 								Constrain1.erase(0, 1);
 								Expression = extractExpression(Constrain1);
 								string From1, To1, From2, To2;
-								extractSigma(Expression, From1, To1, From2, To2);
+								extractSigma_S(Expression, From1, To1, From2, To2);
 								for (int x = 0; x < numberOfLegs; x++) {
 									for (int y = 0; y < numberOfLegs; y++) {
 										if (Legs[x].getFrom() == From1 && Legs[x].getTo() == To1 && Legs[y].getFrom() == From2 && Legs[y].getTo() == To2) {
@@ -299,7 +296,7 @@ public:
 								Constrain1.erase(0, 1);
 								Expression = extractExpression(Constrain1);
 								string From1, To1, From2, To2;
-								extractSigma(Expression, From1, To1, From2, To2);
+								extractSigma_S(Expression, From1, To1, From2, To2);
 								for (int x = 0; x < numberOfLegs; x++) {
 									for (int y = 0; y < numberOfLegs; y++) {
 										if (Legs[x].getFrom() == From1 && Legs[x].getTo() == To1 && Legs[y].getFrom() == From2 && Legs[y].getTo() == To2) {
@@ -349,7 +346,7 @@ public:
 								}
 						else if (operationType == "S") {
 							string From1, To1, From2, To2;
-							extractSigma(Expression, From1, To1, From2, To2);
+							extractSigma_S(Expression, From1, To1, From2, To2);
 							double val = 0;
 							for (int x = 0; x < numberOfLegs; x++) {
 								for (int y = 0; y < numberOfLegs; y++) {
@@ -369,7 +366,7 @@ public:
 								Constrain1.erase(0, 1);
 								Expression = extractExpression(Constrain1);
 								From1, To1, From2, To2;
-								extractSigma(Expression, From1, To1, From2, To2);
+								extractSigma_S(Expression, From1, To1, From2, To2);
 								for (int x = 0; x < numberOfLegs; x++) {
 									for (int y = 0; y < numberOfLegs; y++) {
 										if (Legs[x].getFrom() == From1 && Legs[x].getTo() == To1 && Legs[y].getFrom() == From2 && Legs[y].getTo() == To2) {
@@ -394,7 +391,7 @@ public:
 				}
 				else
 				{
-					if (isIntegerExpression(Constrain1[0])) {
+					if (isInteger(Constrain1[0])) {
 						string number = extractNumber(Constrain1);
 						int value = stringToInt(number);
 						exp3[i] += value;
@@ -465,7 +462,7 @@ public:
 						}
 						else if (operationType == "P") {
 							string From, To, FareClassName;
-							extractP(Expression, From, To, FareClassName);
+							extractP_M(Expression, From, To, FareClassName);
 							for (int x = 0; x < numberOfPaths; x++) {
 								for (int y = 0; y < numberOfFareClasses; y++) {
 									if (FareClasses[y] == FareClassName && Paths[x].getFrom() == From && Paths[x].getTo() == To) {
@@ -478,7 +475,7 @@ public:
 						}
 						else if (operationType == "M") {
 							string From, To, FareClassName;
-							extractP(Expression, From, To, FareClassName);
+							extractP_M(Expression, From, To, FareClassName);
 							for (int x = 0; x < numberOfPaths; x++) {
 								for (int y = 0; y < numberOfFareClasses; y++) {
 									if (FareClasses[y] == FareClassName && Paths[x].getFrom() == From && Paths[x].getTo() == To) {
@@ -491,7 +488,7 @@ public:
 						}
 						else if (operationType == "Sigma") {
 							string From1, To1, From2, To2;
-							extractSigma(Expression, From1, To1, From2, To2);
+							extractSigma_S(Expression, From1, To1, From2, To2);
 							for (int x = 0; x < numberOfLegs; x++) {
 								for (int y = 0; y < numberOfLegs; y++) {
 									if (Legs[x].getFrom() == From1 && Legs[x].getTo() == To1 && Legs[y].getFrom() == From2 && Legs[y].getTo() == To2) {
@@ -522,7 +519,7 @@ public:
 								Constrain1.erase(0, 1);
 								Expression = extractExpression(Constrain1);
 								string From1, To1, From2, To2;
-								extractSigma(Expression, From1, To1, From2, To2);
+								extractSigma_S(Expression, From1, To1, From2, To2);
 								for (int x = 0; x < numberOfLegs; x++) {
 									for (int y = 0; y < numberOfLegs; y++) {
 										if (Legs[x].getFrom() == From1 && Legs[x].getTo() == To1 && Legs[y].getFrom() == From2 && Legs[y].getTo() == To2) {
@@ -550,7 +547,7 @@ public:
 								Constrain1.erase(0, 1);
 								Expression = extractExpression(Constrain1);
 								string From1, To1, From2, To2;
-								extractSigma(Expression, From1, To1, From2, To2);
+								extractSigma_S(Expression, From1, To1, From2, To2);
 								for (int x = 0; x < numberOfLegs; x++) {
 									for (int y = 0; y < numberOfLegs; y++) {
 										if (Legs[x].getFrom() == From1 && Legs[x].getTo() == To1 && Legs[y].getFrom() == From2 && Legs[y].getTo() == To2) {
@@ -578,7 +575,7 @@ public:
 								Constrain1.erase(0, 1);
 								Expression = extractExpression(Constrain1);
 								string From1, To1, From2, To2;
-								extractSigma(Expression, From1, To1, From2, To2);
+								extractSigma_S(Expression, From1, To1, From2, To2);
 								for (int x = 0; x < numberOfLegs; x++) {
 									for (int y = 0; y < numberOfLegs; y++) {
 										if (Legs[x].getFrom() == From1 && Legs[x].getTo() == To1 && Legs[y].getFrom() == From2 && Legs[y].getTo() == To2) {
@@ -628,7 +625,7 @@ public:
 						}
 						else if (operationType == "S") {
 							string From1, To1, From2, To2;
-							extractSigma(Expression, From1, To1, From2, To2);
+							extractSigma_S(Expression, From1, To1, From2, To2);
 							double val = 0;
 							for (int x = 0; x < numberOfLegs; x++) {
 								for (int y = 0; y < numberOfLegs; y++) {
@@ -648,7 +645,7 @@ public:
 								Constrain1.erase(0, 1);
 								Expression = extractExpression(Constrain1);
 								From1, To1, From2, To2;
-								extractSigma(Expression, From1, To1, From2, To2);
+								extractSigma_S(Expression, From1, To1, From2, To2);
 								for (int x = 0; x < numberOfLegs; x++) {
 									for (int y = 0; y < numberOfLegs; y++) {
 										if (Legs[x].getFrom() == From1 && Legs[x].getTo() == To1 && Legs[y].getFrom() == From2 && Legs[y].getTo() == To2) {
@@ -709,7 +706,7 @@ public:
 			case '-':
 			{
 				if (Condition1.empty() ) {
-					if (isIntegerExpression(Constrain1[0])) {
+					if (isInteger(Constrain1[0])) {
 						string number = extractNumber(Constrain1);
 						int value = stringToInt(number);
 						exp2[i] -= value;
@@ -781,7 +778,7 @@ public:
 						}
 						else if (operationType == "P") {
 							string From, To, FareClassName;
-							extractP(Expression, From, To, FareClassName);
+							extractP_M(Expression, From, To, FareClassName);
 							for (int x = 0; x < numberOfPaths; x++) {
 								for (int y = 0; y < numberOfFareClasses; y++) {
 									if (FareClasses[y] == FareClassName && Paths[x].getFrom() == From && Paths[x].getTo() == To) {
@@ -794,7 +791,7 @@ public:
 						}
 						else if (operationType == "M") {
 							string From, To, FareClassName;
-							extractP(Expression, From, To, FareClassName);
+							extractP_M(Expression, From, To, FareClassName);
 							for (int x = 0; x < numberOfPaths; x++) {
 								for (int y = 0; y < numberOfFareClasses; y++) {
 									if (FareClasses[y] == FareClassName && Paths[x].getFrom() == From && Paths[x].getTo() == To) {
@@ -807,7 +804,7 @@ public:
 						}
 						else if (operationType == "Sigma") {
 							string From1, To1, From2, To2;
-							extractSigma(Expression, From1, To1, From2, To2);
+							extractSigma_S(Expression, From1, To1, From2, To2);
 							for (int x = 0; x < numberOfLegs; x++) {
 								for (int y = 0; y < numberOfLegs; y++) {
 									if (Legs[x].getFrom() == From1 && Legs[x].getTo() == To1 && Legs[y].getFrom() == From2 && Legs[y].getTo() == To2) {
@@ -838,7 +835,7 @@ public:
 								Constrain1.erase(0, 1);
 								Expression = extractExpression(Constrain1);
 								string From1, To1, From2, To2;
-								extractSigma(Expression, From1, To1, From2, To2);
+								extractSigma_S(Expression, From1, To1, From2, To2);
 								for (int x = 0; x < numberOfLegs; x++) {
 									for (int y = 0; y < numberOfLegs; y++) {
 										if (Legs[x].getFrom() == From1 && Legs[x].getTo() == To1 && Legs[y].getFrom() == From2 && Legs[y].getTo() == To2) {
@@ -866,7 +863,7 @@ public:
 								Constrain1.erase(0, 1);
 								Expression = extractExpression(Constrain1);
 								string From1, To1, From2, To2;
-								extractSigma(Expression, From1, To1, From2, To2);
+								extractSigma_S(Expression, From1, To1, From2, To2);
 								for (int x = 0; x < numberOfLegs; x++) {
 									for (int y = 0; y < numberOfLegs; y++) {
 										if (Legs[x].getFrom() == From1 && Legs[x].getTo() == To1 && Legs[y].getFrom() == From2 && Legs[y].getTo() == To2) {
@@ -894,7 +891,7 @@ public:
 								Constrain1.erase(0, 1);
 								Expression = extractExpression(Constrain1);
 								string From1, To1, From2, To2;
-								extractSigma(Expression, From1, To1, From2, To2);
+								extractSigma_S(Expression, From1, To1, From2, To2);
 								for (int x = 0; x < numberOfLegs; x++) {
 									for (int y = 0; y < numberOfLegs; y++) {
 										if (Legs[x].getFrom() == From1 && Legs[x].getTo() == To1 && Legs[y].getFrom() == From2 && Legs[y].getTo() == To2) {
@@ -944,7 +941,7 @@ public:
 						}
 						else if (operationType == "S") {
 							string From1, To1, From2, To2;
-							extractSigma(Expression, From1, To1, From2, To2);
+							extractSigma_S(Expression, From1, To1, From2, To2);
 							double val = 0;
 							for (int x = 0; x < numberOfLegs; x++) {
 								for (int y = 0; y < numberOfLegs; y++) {
@@ -964,7 +961,7 @@ public:
 								Constrain1.erase(0, 1);
 								Expression = extractExpression(Constrain1);
 								From1, To1, From2, To2;
-								extractSigma(Expression, From1, To1, From2, To2);
+								extractSigma_S(Expression, From1, To1, From2, To2);
 								for (int x = 0; x < numberOfLegs; x++) {
 									for (int y = 0; y < numberOfLegs; y++) {
 										if (Legs[x].getFrom() == From1 && Legs[x].getTo() == To1 && Legs[y].getFrom() == From2 && Legs[y].getTo() == To2) {
@@ -983,7 +980,7 @@ public:
 				}
 				else
 				{
-					if (isIntegerExpression(Constrain1[0])) {
+					if (isInteger(Constrain1[0])) {
 						string number = extractNumber(Constrain1);
 						int value = stringToInt(number);
 						exp3[i] -= value;
@@ -1054,7 +1051,7 @@ public:
 						}
 						else if (operationType == "P") {
 							string From, To, FareClassName;
-							extractP(Expression, From, To, FareClassName);
+							extractP_M(Expression, From, To, FareClassName);
 							for (int x = 0; x < numberOfPaths; x++) {
 								for (int y = 0; y < numberOfFareClasses; y++) {
 									if (FareClasses[y] == FareClassName && Paths[x].getFrom() == From && Paths[x].getTo() == To) {
@@ -1067,7 +1064,7 @@ public:
 						}
 						else if (operationType == "M") {
 							string From, To, FareClassName;
-							extractP(Expression, From, To, FareClassName);
+							extractP_M(Expression, From, To, FareClassName);
 							for (int x = 0; x < numberOfPaths; x++) {
 								for (int y = 0; y < numberOfFareClasses; y++) {
 									if (FareClasses[y] == FareClassName && Paths[x].getFrom() == From && Paths[x].getTo() == To) {
@@ -1080,7 +1077,7 @@ public:
 						}
 						else if (operationType == "Sigma") {
 							string From1, To1, From2, To2;
-							extractSigma(Expression, From1, To1, From2, To2);
+							extractSigma_S(Expression, From1, To1, From2, To2);
 							for (int x = 0; x < numberOfLegs; x++) {
 								for (int y = 0; y < numberOfLegs; y++) {
 									if (Legs[x].getFrom() == From1 && Legs[x].getTo() == To1 && Legs[y].getFrom() == From2 && Legs[y].getTo() == To2) {
@@ -1111,7 +1108,7 @@ public:
 								Constrain1.erase(0, 1);
 								Expression = extractExpression(Constrain1);
 								string From1, To1, From2, To2;
-								extractSigma(Expression, From1, To1, From2, To2);
+								extractSigma_S(Expression, From1, To1, From2, To2);
 								for (int x = 0; x < numberOfLegs; x++) {
 									for (int y = 0; y < numberOfLegs; y++) {
 										if (Legs[x].getFrom() == From1 && Legs[x].getTo() == To1 && Legs[y].getFrom() == From2 && Legs[y].getTo() == To2) {
@@ -1139,7 +1136,7 @@ public:
 								Constrain1.erase(0, 1);
 								Expression = extractExpression(Constrain1);
 								string From1, To1, From2, To2;
-								extractSigma(Expression, From1, To1, From2, To2);
+								extractSigma_S(Expression, From1, To1, From2, To2);
 								for (int x = 0; x < numberOfLegs; x++) {
 									for (int y = 0; y < numberOfLegs; y++) {
 										if (Legs[x].getFrom() == From1 && Legs[x].getTo() == To1 && Legs[y].getFrom() == From2 && Legs[y].getTo() == To2) {
@@ -1167,7 +1164,7 @@ public:
 								Constrain1.erase(0, 1);
 								Expression = extractExpression(Constrain1);
 								string From1, To1, From2, To2;
-								extractSigma(Expression, From1, To1, From2, To2);
+								extractSigma_S(Expression, From1, To1, From2, To2);
 								for (int x = 0; x < numberOfLegs; x++) {
 									for (int y = 0; y < numberOfLegs; y++) {
 										if (Legs[x].getFrom() == From1 && Legs[x].getTo() == To1 && Legs[y].getFrom() == From2 && Legs[y].getTo() == To2) {
@@ -1217,7 +1214,7 @@ public:
 						}
 						else if (operationType == "S") {
 							string From1, To1, From2, To2;
-							extractSigma(Expression, From1, To1, From2, To2);
+							extractSigma_S(Expression, From1, To1, From2, To2);
 							double val = 0;
 							for (int x = 0; x < numberOfLegs; x++) {
 								for (int y = 0; y < numberOfLegs; y++) {
@@ -1237,7 +1234,7 @@ public:
 								Constrain1.erase(0, 1);
 								Expression = extractExpression(Constrain1);
 								From1, To1, From2, To2;
-								extractSigma(Expression, From1, To1, From2, To2);
+								extractSigma_S(Expression, From1, To1, From2, To2);
 								for (int x = 0; x < numberOfLegs; x++) {
 									for (int y = 0; y < numberOfLegs; y++) {
 										if (Legs[x].getFrom() == From1 && Legs[x].getTo() == To1 && Legs[y].getFrom() == From2 && Legs[y].getTo() == To2) {
@@ -1293,7 +1290,7 @@ public:
 			case '*':
 			{
 				if (Condition1.empty() ) {
-					if (isIntegerExpression(Constrain1[0])) {
+					if (isInteger(Constrain1[0])) {
 						string number = extractNumber(Constrain1);
 						int value = stringToInt(number);
 						exp2[i] *= value;
@@ -1341,7 +1338,7 @@ public:
 						}
 						else if (operationType == "M") {
 							string From, To, FareClassName;
-							extractP(Expression, From, To, FareClassName);
+							extractP_M(Expression, From, To, FareClassName);
 							for (int x = 0; x < numberOfPaths; x++) {
 								for (int y = 0; y < numberOfFareClasses; y++) {
 									if (FareClasses[y] == FareClassName && Paths[x].getFrom() == From && Paths[x].getTo() == To) {
@@ -1394,7 +1391,7 @@ public:
 						}
 						else if (operationType == "S") {
 							string From1, To1, From2, To2;
-							extractSigma(Expression, From1, To1, From2, To2);
+							extractSigma_S(Expression, From1, To1, From2, To2);
 							for (int x = 0; x < numberOfLegs; x++) {
 								for (int y = 0; y < numberOfLegs; y++) {
 									if (Legs[x].getFrom() == From1 && Legs[x].getTo() == To1 && Legs[y].getFrom() == From2 && Legs[y].getTo() == To2) {
@@ -1409,7 +1406,7 @@ public:
 				}
 				else
 				{
-					if (isIntegerExpression(Constrain1[0])) {
+					if (isInteger(Constrain1[0])) {
 						string number = extractNumber(Constrain1);
 						int value = stringToInt(number);
 						exp3[i] *= value;
@@ -1456,7 +1453,7 @@ public:
 						}
 						else if (operationType == "M") {
 							string From, To, FareClassName;
-							extractP(Expression, From, To, FareClassName);
+							extractP_M(Expression, From, To, FareClassName);
 							for (int x = 0; x < numberOfPaths; x++) {
 								for (int y = 0; y < numberOfFareClasses; y++) {
 									if (FareClasses[y] == FareClassName && Paths[x].getFrom() == From && Paths[x].getTo() == To) {
@@ -1509,7 +1506,7 @@ public:
 						}
 						else if (operationType == "S") {
 							string From1, To1, From2, To2;
-							extractSigma(Expression, From1, To1, From2, To2);
+							extractSigma_S(Expression, From1, To1, From2, To2);
 							for (int x = 0; x < numberOfLegs; x++) {
 								for (int y = 0; y < numberOfLegs; y++) {
 									if (Legs[x].getFrom() == From1 && Legs[x].getTo() == To1 && Legs[y].getFrom() == From2 && Legs[y].getTo() == To2) {
@@ -1562,7 +1559,7 @@ public:
 			case '/':
 			{
 				if (Condition1.empty() ) {
-					if (isIntegerExpression(Constrain1[0])) {
+					if (isInteger(Constrain1[0])) {
 						string number = extractNumber(Constrain1);
 						int value = stringToInt(number);
 						exp2[i] /= value;
@@ -1610,7 +1607,7 @@ public:
 						}
 						else if (operationType == "M") {
 							string From, To, FareClassName;
-							extractP(Expression, From, To, FareClassName);
+							extractP_M(Expression, From, To, FareClassName);
 							for (int x = 0; x < numberOfPaths; x++) {
 								for (int y = 0; y < numberOfFareClasses; y++) {
 									if (FareClasses[y] == FareClassName && Paths[x].getFrom() == From && Paths[x].getTo() == To) {
@@ -1663,7 +1660,7 @@ public:
 						}
 						else if (operationType == "S") {
 							string From1, To1, From2, To2;
-							extractSigma(Expression, From1, To1, From2, To2);
+							extractSigma_S(Expression, From1, To1, From2, To2);
 							for (int x = 0; x < numberOfLegs; x++) {
 								for (int y = 0; y < numberOfLegs; y++) {
 									if (Legs[x].getFrom() == From1 && Legs[x].getTo() == To1 && Legs[y].getFrom() == From2 && Legs[y].getTo() == To2) {
@@ -1678,7 +1675,7 @@ public:
 				}
 				else
 				{
-					if (isIntegerExpression(Constrain1[0])) {
+					if (isInteger(Constrain1[0])) {
 						string number = extractNumber(Constrain1);
 						int value = stringToInt(number);
 						exp3[i] /= value;
@@ -1725,7 +1722,7 @@ public:
 						}
 						else if (operationType == "M") {
 							string From, To, FareClassName;
-							extractP(Expression, From, To, FareClassName);
+							extractP_M(Expression, From, To, FareClassName);
 							for (int x = 0; x < numberOfPaths; x++) {
 								for (int y = 0; y < numberOfFareClasses; y++) {
 									if (FareClasses[y] == FareClassName && Paths[x].getFrom() == From && Paths[x].getTo() == To) {
@@ -1778,7 +1775,7 @@ public:
 						}
 						else if (operationType == "S") {
 							string From1, To1, From2, To2;
-							extractSigma(Expression, From1, To1, From2, To2);
+							extractSigma_S(Expression, From1, To1, From2, To2);
 							for (int x = 0; x < numberOfLegs; x++) {
 								for (int y = 0; y < numberOfLegs; y++) {
 									if (Legs[x].getFrom() == From1 && Legs[x].getTo() == To1 && Legs[y].getFrom() == From2 && Legs[y].getTo() == To2) {
@@ -1884,7 +1881,7 @@ public:
 #pragma endregion
 		return true;
 	}
-	string readFromFile() {
+	string readDataFromFile() {
 		ifstream file("./Data/Output.txt");
 		string fileContents;
 
@@ -2001,7 +1998,7 @@ public:
 		// Extract the second city
 		To = text.substr(city2StartPos, city2EndPos - city2StartPos);
 	}
-	void extractP(const string& inputString, string& from, string& to, string& fareClassName) {
+	void extractP_M(const string& inputString, string& from, string& to, string& fareClassName) {
 		// Find the positions of '[' and ',' to extract the substrings
 		size_t city1StartPos = inputString.find('[') + 1;
 		size_t comma1Pos = inputString.find(',');
@@ -2047,7 +2044,7 @@ public:
 
 		return operationType;
 	}
-	bool isIntegerExpression(char& expression) {
+	bool isInteger(char& expression) {
 		if (!isdigit(expression)) {
 			return false;  // If a non-digit character is found, it's not an integer expression
 		}
@@ -2077,7 +2074,7 @@ public:
 				break;
 			}
 			if (Condition == "Min") {
-				if (isIntegerExpression(Constrain[0])) {
+				if (isInteger(Constrain[0])) {
 					string number = extractNumber(Constrain);
 					Value = stringToInt(number);
 				}
@@ -2123,7 +2120,7 @@ public:
 					}
 					else if (operationType == "M") {
 						string From, To, FareClassName;
-						extractP(Expression, From, To, FareClassName);
+						extractP_M(Expression, From, To, FareClassName);
 						for (int x = 0; x < numberOfPaths; x++) {
 							for (int y = 0; y < numberOfFareClasses; y++) {
 								if (FareClasses[y] == FareClassName && Paths[x].getFrom() == From && Paths[x].getTo() == To) {
@@ -2139,7 +2136,7 @@ public:
 				Constrain.erase(0, 1);
 			}
 			else {
-				if (isIntegerExpression(Constrain[0])) {
+				if (isInteger(Constrain[0])) {
 					string number = extractNumber(Constrain);
 					Value = stringToInt(number);
 				}
@@ -2185,7 +2182,7 @@ public:
 					}
 					else if (operationType == "M") {
 						string From, To, FareClassName;
-						extractP(Expression, From, To, FareClassName);
+						extractP_M(Expression, From, To, FareClassName);
 						for (int x = 0; x < numberOfPaths; x++) {
 							for (int y = 0; y < numberOfFareClasses; y++) {
 								if (FareClasses[y] == FareClassName && Paths[x].getFrom() == From && Paths[x].getTo() == To) {
@@ -2202,7 +2199,7 @@ public:
 		}
 		return result;
 	}
-	void extractSigma(const string& text, string& From1, string& To1, string& From2, string& To2) {
+	void extractSigma_S(const string& text, string& From1, string& To1, string& From2, string& To2) {
 		// Find the positions of '[' and ']' to extract the substrings
 		size_t StartPos = text.find('[') + 1;
 		size_t EndPos = text.find(']', StartPos);

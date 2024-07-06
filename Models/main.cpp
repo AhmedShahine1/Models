@@ -446,8 +446,4 @@ int main() {
     System(PathsthatContainLeg, numPathsthatContainLeg, numOfAircraft, numOfPaths, numOfFlightLegs, numOfFareClasses, numOfLegsOfTypeO, numOfLegsOfTypeM, numOfPathsWithLegO, numOfPathsWithLegM, countU, countV, legs, Paths, aircraftArray, NameFareClasses, pathsWithTypeM, pathsWithTypeO, legsOfTypeM, legsOfTypeO, U, V, S);
     return 0;
 #pragma endregion
-/*[[0.25, 0.25],
-[0.25, 0.25],
-[0.25, 0.25]]
-*/ 
 }
