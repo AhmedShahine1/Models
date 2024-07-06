@@ -7,7 +7,7 @@ typedef IloArray<NumVar2D> NumVar3D;
 class Cplex
 {
 public:
-	Cplex(string** PathsthatContainLeg, int* numPathsthatContainLeg, int numAirCrafts, int numPaths, int numLegs, int numFareClasses, int numOfLegsOfTypeO, int numOfLegsOfTypeM, int numOfPathsWithLegO, int numOfPathsWithLegM, Leg* Legs, Path* Paths, AirCraft* AirCrafts, string* FareClasses, Path* pathsWithTypeM, Path* pathsWithTypeO, Leg* legsOfTypeM, Leg* legsOfTypeO)
+	Cplex(string** PathsthatContainLeg, int* numPathsthatContainLeg, int numAirCrafts, int numPaths, int numLegs, int numFareClasses, int numOfLegsOfTypeO, int numOfLegsOfTypeM, int numOfPathsWithLegO, int numOfPathsWithLegM, int numOfU, int numOfV, Leg* Legs, Path* Paths, AirCraft* AirCrafts, string* FareClasses, Path* pathsWithTypeM, Path* pathsWithTypeO, Leg* legsOfTypeM, Leg* legsOfTypeO, Leg** U, Leg** V, double** S)
 		: PathsthatContainLeg(PathsthatContainLeg),
 		numPathsthatContainLeg(numPathsthatContainLeg),
 		numberofAirCrafts(numAirCrafts),
@@ -18,6 +18,8 @@ public:
 		numOfLegsOfTypeM(numOfLegsOfTypeM),
 		numOfPathsWithLegO(numOfPathsWithLegO),
 		numOfPathsWithLegM(numOfPathsWithLegM),
+		numOfU(numOfU),
+		numOfV(numOfV),
 		Legs(Legs),
 		Paths(Paths),
 		AirCrafts(AirCrafts),
@@ -25,30 +27,50 @@ public:
 		pathsWithTypeM(pathsWithTypeM),
 		pathsWithTypeO(pathsWithTypeO),
 		legsOfTypeM(legsOfTypeM),
-		legsOfTypeO(legsOfTypeO){}
+		legsOfTypeO(legsOfTypeO),
+		U(U),
+		V(V),
+		S(S) {}
 	bool System() {
 		auto start = chrono::high_resolution_clock::now();
 		IloEnv env;
 		IloModel Model(env);
 #pragma region Define decision variable
-		NumVar2D X(env, numberofAirCrafts);
-		IloNumVarArray Z(env, numberOfPaths, 0, IloInfinity, ILOINT);
-		NumVar2D P(env, numberOfPaths);
+		IloArray<IloBoolVarArray> X(env, numberofAirCrafts);
+		IloBoolVarArray Z(env, numberOfPaths);
+		IloArray<IloNumVarArray> P(env, numberOfPaths);
+		IloNumVarArray ATL(env, numberOfLegs, 0, IloInfinity);
+		IloNumVarArray Alpha(env, numberOfLegs, 0, IloInfinity);
+		IloNumVarArray Byta(env, numberOfLegs, 0, IloInfinity);
+		IloArray<IloBoolVarArray> Sigma(env, numberOfLegs);
 
 		for (int s = 0; s < numberofAirCrafts; s++)
 		{
-			X[s] = IloNumVarArray(env, numberOfLegs, 0, IloInfinity, ILOINT);
+			X[s] = IloBoolVarArray(env, numberOfLegs);
+			for (int i = 0; i < numberOfLegs; i++) {
+				X[s][i] = IloBoolVar(env);
+			}
+		}
+		for (int i = 0; i < numberOfLegs; i++) {
+			Z[i] = IloBoolVar(env);
+		}
+		for (int s = 0; s < numberOfLegs; s++)
+		{
+			Sigma[s] = IloBoolVarArray(env, numberOfLegs);
+			for (int i = 0; i < numberOfLegs; i++) {
+				Sigma[s][i] = IloBoolVar(env);
+			}
 		}
 		for (int s = 0; s < numberOfPaths; s++)
 		{
-			P[s] = IloNumVarArray(env, numberOfFareClasses, 0, IloInfinity, ILOINT);
+			P[s] = IloNumVarArray(env, numberOfFareClasses, 0, IloInfinity);
 		}
-
 #pragma endregion
-
 #pragma region Objective Function
-
+		double weight1 = 0.5;
+		double weight2 = 0.5;
 		IloExpr exp0(env);
+		IloExpr exp1(env);
 
 		for (int i = 0; i < numberOfPaths; i++)
 		{
@@ -63,8 +85,11 @@ public:
 				exp0 -= (AirCrafts[i].getCostFromLeg(Legs[x].getFrom(), Legs[x].getTo()) * X[i][x]);
 			}
 		}
-
-		Model.add(IloMaximize(env, exp0));
+		for (int i = 0; i < numberOfLegs; i++) {
+			exp1 += (Legs[i].getPE() * Alpha[i] + Legs[i].getPL() * Byta[i]);
+		}
+		IloObjective combineObj = IloMaximize(env, weight1 * exp0 - weight2 * exp1);
+		Model.add(combineObj);
 
 #pragma endregion
 #pragma region Constraints
@@ -73,121 +98,22 @@ public:
 		int countConstrain1 = countLines(Constrain1);
 		char operation = '+';
 		int i = 0;
-		string Condition;
-		IloExpr* exp1 = new IloExpr[countConstrain1];
+		string Condition1;
 		IloExpr* exp2 = new IloExpr[countConstrain1];
+		IloExpr* exp3 = new IloExpr[countConstrain1];
+		IloExpr* exp4 = new IloExpr[countConstrain1];
 		// Initialize each IloExpr in the array
 		for (int i = 0; i < countConstrain1; ++i) {
-			exp1[i] = IloExpr(env);
 			exp2[i] = IloExpr(env);
+			exp3[i] = IloExpr(env);
 		}
-		while(i < countConstrain1) {
-			string MinMax=Constrain1.substr(0,3);
+		while (i < countConstrain1) {
+			string MinMax = Constrain1.substr(0, 3);
 			switch (operation)
 			{
 			case '+':
 			{
-				if (Condition.empty()) {
-					if (isIntegerExpression(Constrain1[0])) {
-						string number = extractNumber(Constrain1);
-						int value = stringToInt(number);
-						exp1[i] += value;
-					}
-					else if (MinMax == "Min" || MinMax == "Max") {
-						Constrain1.erase(0, 4);
-						exp1[i] += MinMaxValue(Constrain1.substr(0, Constrain1.find('}') + 1), MinMax);
-						Constrain1.erase(0, Constrain1.find_first_of('}') + 1);
-					}
-					else if (Constrain1[0] == '|') {
-						Constrain1.erase(0, 1);
-						string Expression = extractExpression(Constrain1);
-						string operationType = extractOperationType(Expression);
-						if (operationType == "L") {
-							string From, To;
-							extract1D(Expression, From, To);
-							for (int x = 0; x < numberOfPaths; x++) {
-								if (Paths[x].getFrom() == From && Paths[x].getTo() == To) {
-									exp1[i] += Paths[x].getLegCount();
-
-									break;
-								}
-							}
-						}
-					}
-					else {
-
-						string Expression = extractExpression(Constrain1);
-						string operationType = extractOperationType(Expression);
-						if (operationType == "Cap")
-						{
-							string AirCraftType, FareClassName;
-							extract1D(Expression, AirCraftType, FareClassName);
-							for (int x = 0; x < numberofAirCrafts; x++) {
-								for (int y = 0; y < numberOfFareClasses; y++)
-								{
-									if (AirCrafts[x].getType() == AirCraftType && FareClasses[y] == FareClassName) {
-										exp1[i] += AirCrafts[x].getFareClasses()[y].getCapah();
-										x = numberofAirCrafts;
-										y = numberOfFareClasses;
-									}
-								}
-							}
-
-						}
-						else if (operationType == "X")
-						{
-							string From, To, AirCraftName;
-							extract2D1To2(Expression, AirCraftName, From, To);
-							for (int x = 0; x < numberOfLegs; x++) {
-								for (int y = 0; y < numberofAirCrafts; y++) {
-									if (AirCrafts[y].getType() == AirCraftName && Legs[x].getFrom() == From && Legs[x].getTo() == To) {
-										exp1[i] += X[y][x];
-										y = numberofAirCrafts;
-										x = numOfLegsOfTypeM;
-									}
-								}
-							}
-						}
-						else if(operationType == "Z") {
-							string From, To;
-							extract1D(Expression, From, To);
-							for (int x = 0; x < numberOfPaths; x++) {
-								if (Paths[x].getFrom() == From && Paths[x].getTo() == To) {
-									exp1[i] += Z[x];
-									x = numberOfPaths;
-								}
-							}
-						}
-						else if(operationType == "P") {
-							string From, To, FareClassName;
-							extract2D2To1(Expression, From, To, FareClassName);
-							for (int x = 0; x < numberOfPaths; x++) {
-								for (int y = 0; y < numberOfFareClasses; y++) {
-									if (FareClasses[y] == FareClassName && Paths[x].getFrom() == From && Paths[x].getTo() == To) {
-										exp1[i] += P[x][y];
-										y = numberOfFareClasses;
-										x = numberOfPaths;
-									}
-								}
-							}
-						}
-						else if(operationType == "M") {
-							string From, To, FareClassName;
-							extract2D2To1(Expression, From, To, FareClassName);
-							for (int x = 0; x < numberOfPaths; x++) {
-								for (int y = 0; y < numberOfFareClasses; y++) {
-									if (FareClasses[y] == FareClassName && Paths[x].getFrom() == From && Paths[x].getTo() == To) {
-										exp1[i] += Paths[x].getFareClasses()[y].getMph();
-										y = numberOfFareClasses;
-										x = numberOfPaths;
-									}
-								}
-							}
-						}
-					}
-				}
-				else
-				{
+				if (Condition1.empty() ) {
 					if (isIntegerExpression(Constrain1[0])) {
 						string number = extractNumber(Constrain1);
 						int value = stringToInt(number);
@@ -195,7 +121,7 @@ public:
 					}
 					else if (MinMax == "Min" || MinMax == "Max") {
 						Constrain1.erase(0, 4);
-						exp2[i] += MinMaxValue(Constrain1.substr(0, Constrain1.find('}')+1), MinMax);
+						exp2[i] += MinMaxValue(Constrain1.substr(0, Constrain1.find('}') + 1), MinMax);
 						Constrain1.erase(0, Constrain1.find_first_of('}') + 1);
 					}
 					else if (Constrain1[0] == '|') {
@@ -207,14 +133,15 @@ public:
 							extract1D(Expression, From, To);
 							for (int x = 0; x < numberOfPaths; x++) {
 								if (Paths[x].getFrom() == From && Paths[x].getTo() == To) {
-									exp2[i]+= Paths[x].getLegCount();
-									Constrain1.erase(0, 1);
+									exp2[i] += Paths[x].getLegCount();
+
 									break;
 								}
 							}
 						}
 					}
 					else {
+
 						string Expression = extractExpression(Constrain1);
 						string operationType = extractOperationType(Expression);
 						if (operationType == "Cap")
@@ -236,7 +163,7 @@ public:
 						else if (operationType == "X")
 						{
 							string From, To, AirCraftName;
-							extract2D1To2(Expression, AirCraftName, From, To);
+							extractX(Expression, AirCraftName, From, To);
 							for (int x = 0; x < numberOfLegs; x++) {
 								for (int y = 0; y < numberofAirCrafts; y++) {
 									if (AirCrafts[y].getType() == AirCraftName && Legs[x].getFrom() == From && Legs[x].getTo() == To) {
@@ -259,7 +186,7 @@ public:
 						}
 						else if (operationType == "P") {
 							string From, To, FareClassName;
-							extract2D2To1(Expression, From, To, FareClassName);
+							extractP(Expression, From, To, FareClassName);
 							for (int x = 0; x < numberOfPaths; x++) {
 								for (int y = 0; y < numberOfFareClasses; y++) {
 									if (FareClasses[y] == FareClassName && Paths[x].getFrom() == From && Paths[x].getTo() == To) {
@@ -272,7 +199,7 @@ public:
 						}
 						else if (operationType == "M") {
 							string From, To, FareClassName;
-							extract2D2To1(Expression, From, To, FareClassName);
+							extractP(Expression, From, To, FareClassName);
 							for (int x = 0; x < numberOfPaths; x++) {
 								for (int y = 0; y < numberOfFareClasses; y++) {
 									if (FareClasses[y] == FareClassName && Paths[x].getFrom() == From && Paths[x].getTo() == To) {
@@ -283,55 +210,198 @@ public:
 								}
 							}
 						}
+						else if (operationType == "Sigma") {
+							string From1, To1, From2, To2;
+							extractSigma(Expression, From1, To1, From2, To2);
+							for (int x = 0; x < numberOfLegs; x++) {
+								for (int y = 0; y < numberOfLegs; y++) {
+									if (Legs[x].getFrom() == From1 && Legs[x].getTo() == To1 && Legs[y].getFrom() == From2 && Legs[y].getTo() == To2) {
+										exp2[i] += Sigma[x][y];
+										y = numberOfLegs;
+										x = numOfLegsOfTypeM;
+									}
+								}
+							}
+						}
+						else if (operationType == "ATL") {
+							string From, To;
+							extract1D(Expression, From, To);
+							for (int x = 0; x < numberOfLegs; x++) {
+								if(Legs[x].getFrom() == From && Legs[x].getTo() == To)
+									exp2[i] += ATL[x];
+							}
+						}
+						else if (operationType == "TE") {
+							string From, To;
+							double val;
+							extract1D(Expression, From, To);
+							for (int x = 0; x < numberOfLegs; x++) {
+								if (Legs[x].getFrom() == From && Legs[x].getTo() == To)
+									val = Legs[x].getTE();
+							}
+							if (Constrain1[0] == '*') {
+								Constrain1.erase(0, 1);
+								Expression = extractExpression(Constrain1);
+								string From1, To1, From2, To2;
+								extractSigma(Expression, From1, To1, From2, To2);
+								for (int x = 0; x < numberOfLegs; x++) {
+									for (int y = 0; y < numberOfLegs; y++) {
+										if (Legs[x].getFrom() == From1 && Legs[x].getTo() == To1 && Legs[y].getFrom() == From2 && Legs[y].getTo() == To2) {
+											exp2[i] += (val * Sigma[x][y]);
+											y = numberOfLegs;
+											x = numOfLegsOfTypeM;
+										}
+									}
+								}
+							}
+							else {
+								exp2[i] += val;
+							}
+
+						}
+						else if (operationType == "TT") {
+							string From, To;
+							double val;
+							extract1D(Expression, From, To);
+							for (int x = 0; x < numberOfLegs; x++) {
+								if (Legs[x].getFrom() == From && Legs[x].getTo() == To)
+									val = Legs[x].getTT();
+							}
+							if (Constrain1[0] == '*') {
+								Constrain1.erase(0, 1);
+								Expression = extractExpression(Constrain1);
+								string From1, To1, From2, To2;
+								extractSigma(Expression, From1, To1, From2, To2);
+								for (int x = 0; x < numberOfLegs; x++) {
+									for (int y = 0; y < numberOfLegs; y++) {
+										if (Legs[x].getFrom() == From1 && Legs[x].getTo() == To1 && Legs[y].getFrom() == From2 && Legs[y].getTo() == To2) {
+											exp2[i] += (val * Sigma[x][y]);
+											y = numberOfLegs;
+											x = numOfLegsOfTypeM;
+										}
+									}
+								}
+							}
+							else {
+								exp2[i] += val;
+							}
+
+						}
+						else if (operationType == "TL") {
+							string From, To;
+							double val;
+							extract1D(Expression, From, To);
+							for (int x = 0; x < numberOfLegs; x++) {
+								if (Legs[x].getFrom() == From && Legs[x].getTo() == To)
+									val = Legs[x].getTL();
+							}
+							if (Constrain1[0] == '*') {
+								Constrain1.erase(0, 1);
+								Expression = extractExpression(Constrain1);
+								string From1, To1, From2, To2;
+								extractSigma(Expression, From1, To1, From2, To2);
+								for (int x = 0; x < numberOfLegs; x++) {
+									for (int y = 0; y < numberOfLegs; y++) {
+										if (Legs[x].getFrom() == From1 && Legs[x].getTo() == To1 && Legs[y].getFrom() == From2 && Legs[y].getTo() == To2) {
+											exp2[i] += (val * Sigma[x][y]);
+											y = numberOfLegs;
+											x = numOfLegsOfTypeM;
+										}
+									}
+								}
+							}
+							else {
+								exp2[i] += val;
+							}
+
+						}
+						else if (operationType == "Alpha") {
+							string From, To;
+							extract1D(Expression, From, To);
+							for (int x = 0; x < numberOfLegs; x++) {
+								if (Legs[x].getFrom() == From && Legs[x].getTo() == To)
+									exp2[i] += Alpha[x];
+							}
+						}
+						else if (operationType == "Byta") {
+							string From, To;
+							extract1D(Expression, From, To);
+							for (int x = 0; x < numberOfLegs; x++) {
+								if (Legs[x].getFrom() == From && Legs[x].getTo() == To)
+									exp2[i] += Byta[x];
+							}
+						}
+						else if (operationType == "PL") {
+							string From, To;
+							extract1D(Expression, From, To);
+							for (int x = 0; x < numberOfLegs; x++) {
+								if (Legs[x].getFrom() == From && Legs[x].getTo() == To)
+									exp2[i] += Legs[x].getPL();
+							}
+							}
+						else if (operationType == "PE") {
+								string From, To;
+								extract1D(Expression, From, To);
+								for (int x = 0; x < numberOfLegs; x++) {
+									if (Legs[x].getFrom() == From && Legs[x].getTo() == To)
+										exp2[i] += Legs[x].getPE();
+								}
+								}
+						else if (operationType == "S") {
+							string From1, To1, From2, To2;
+							extractSigma(Expression, From1, To1, From2, To2);
+							double val = 0;
+							for (int x = 0; x < numberOfLegs; x++) {
+								for (int y = 0; y < numberOfLegs; y++) {
+									if (Legs[x].getFrom() == From1 && Legs[x].getTo() == To1 && Legs[x].getFrom() == From2 && Legs[x].getTo() == To2) {
+										val = S[x][y];
+										x = numberOfLegs;
+										y = numberOfLegs;
+									}
+									else if (Legs[y].getFrom() == From1 && Legs[y].getTo() == To1 && Legs[x].getFrom() == From2 && Legs[x].getTo() == To2) {
+										val += S[y][x];
+										x = numberOfLegs;
+										y = numberOfLegs;
+									}
+								}
+							}
+							if (Constrain1[0] == '*') {
+								Constrain1.erase(0, 1);
+								Expression = extractExpression(Constrain1);
+								From1, To1, From2, To2;
+								extractSigma(Expression, From1, To1, From2, To2);
+								for (int x = 0; x < numberOfLegs; x++) {
+									for (int y = 0; y < numberOfLegs; y++) {
+										if (Legs[x].getFrom() == From1 && Legs[x].getTo() == To1 && Legs[y].getFrom() == From2 && Legs[y].getTo() == To2) {
+											exp2[i] += (val * Sigma[x][y]);
+											y = numberOfLegs;
+											x = numOfLegsOfTypeM;
+										}
+										else if (Legs[y].getFrom() == From1 && Legs[y].getTo() == To1 && Legs[x].getFrom() == From2 && Legs[x].getTo() == To2) {
+											exp2[i] += (val * Sigma[y][x]);
+											x = numberOfLegs;
+											y = numberOfLegs;
+										}
+
+									}
+								}
+							}
+							else {
+								exp2[i] += val;
+							}
+						}
 					}
-				}
-				//Check If end line
-				if (Constrain1[0] == '\n') {
-					if (Condition == "=") {
-						Model.add(exp1[i] == exp2[i]);
-					}
-					else if (Condition == "<=") {
-						Model.add(exp1[i] <= exp2[i]);
-					}
-					else if (Condition == ">=") {
-						Model.add(exp1[i] >= exp2[i]);
-					}
-					else if (Condition == "<") {
-						Model.add(exp1[i] < exp2[i]);
-					}
-					else if (Condition == ">") {
-						Model.add(exp1[i] > exp2[i]);
-					}
-					operation = '+';
-					Condition.clear();
-					i++;
-				}
-				else if (Constrain1[0] != '<' && Constrain1[0] != '=' && Constrain1[0] != '>' && Constrain1[0] + Constrain1[1] != '<=' && Constrain1[0] + Constrain1[1] != '>=')
-					operation = Constrain1[0];
-				else if (Constrain1.substr(0,2) == "<=" || Constrain1.substr(0, 2) == ">=") {
-					operation = '+';
-					Condition = Constrain1.substr(0, 2);
-					Constrain1.erase(0, 1);
 				}
 				else
 				{
-					operation = '+';
-					Condition = Constrain1[0];
-				}
-				Constrain1.erase(0, 1);
-				break;
-			}
-			case '-':
-			{
-				if (Condition.empty()) {
 					if (isIntegerExpression(Constrain1[0])) {
 						string number = extractNumber(Constrain1);
 						int value = stringToInt(number);
-						exp1[i] -= value;
+						exp3[i] += value;
 					}
 					else if (MinMax == "Min" || MinMax == "Max") {
 						Constrain1.erase(0, 4);
-						exp1[i] -= MinMaxValue(Constrain1.substr(0, Constrain1.find('}')+1), MinMax);
+						exp3[i] += MinMaxValue(Constrain1.substr(0, Constrain1.find('}') + 1), MinMax);
 						Constrain1.erase(0, Constrain1.find_first_of('}') + 1);
 					}
 					else if (Constrain1[0] == '|') {
@@ -343,15 +413,14 @@ public:
 							extract1D(Expression, From, To);
 							for (int x = 0; x < numberOfPaths; x++) {
 								if (Paths[x].getFrom() == From && Paths[x].getTo() == To) {
-									exp1[i] -= Paths[x].getLegCount();
-
+									exp3[i] += Paths[x].getLegCount();
+									Constrain1.erase(0, 1);
 									break;
 								}
 							}
 						}
 					}
 					else {
-
 						string Expression = extractExpression(Constrain1);
 						string operationType = extractOperationType(Expression);
 						if (operationType == "Cap")
@@ -362,7 +431,7 @@ public:
 								for (int y = 0; y < numberOfFareClasses; y++)
 								{
 									if (AirCrafts[x].getType() == AirCraftType && FareClasses[y] == FareClassName) {
-										exp1[i] -= AirCrafts[x].getFareClasses()[y].getCapah();
+										exp3[i] += AirCrafts[x].getFareClasses()[y].getCapah();
 										x = numberofAirCrafts;
 										y = numberOfFareClasses;
 									}
@@ -373,11 +442,11 @@ public:
 						else if (operationType == "X")
 						{
 							string From, To, AirCraftName;
-							extract2D1To2(Expression, AirCraftName, From, To);
+							extractX(Expression, AirCraftName, From, To);
 							for (int x = 0; x < numberOfLegs; x++) {
 								for (int y = 0; y < numberofAirCrafts; y++) {
 									if (AirCrafts[y].getType() == AirCraftName && Legs[x].getFrom() == From && Legs[x].getTo() == To) {
-										exp1[i] -= X[y][x];
+										exp3[i] += X[y][x];
 										y = numberofAirCrafts;
 										x = numOfLegsOfTypeM;
 									}
@@ -389,18 +458,18 @@ public:
 							extract1D(Expression, From, To);
 							for (int x = 0; x < numberOfPaths; x++) {
 								if (Paths[x].getFrom() == From && Paths[x].getTo() == To) {
-									exp1[i] -= Z[x];
+									exp3[i] += Z[x];
 									x = numberOfPaths;
 								}
 							}
 						}
 						else if (operationType == "P") {
 							string From, To, FareClassName;
-							extract2D2To1(Expression, From, To, FareClassName);
+							extractP(Expression, From, To, FareClassName);
 							for (int x = 0; x < numberOfPaths; x++) {
 								for (int y = 0; y < numberOfFareClasses; y++) {
 									if (FareClasses[y] == FareClassName && Paths[x].getFrom() == From && Paths[x].getTo() == To) {
-										exp1[i] -= P[x][y];
+										exp3[i] += P[x][y];
 										y = numberOfFareClasses;
 										x = numberOfPaths;
 									}
@@ -409,21 +478,237 @@ public:
 						}
 						else if (operationType == "M") {
 							string From, To, FareClassName;
-							extract2D2To1(Expression, From, To, FareClassName);
+							extractP(Expression, From, To, FareClassName);
 							for (int x = 0; x < numberOfPaths; x++) {
 								for (int y = 0; y < numberOfFareClasses; y++) {
 									if (FareClasses[y] == FareClassName && Paths[x].getFrom() == From && Paths[x].getTo() == To) {
-										exp1[i] -= Paths[x].getFareClasses()[y].getMph();
+										exp3[i] += Paths[x].getFareClasses()[y].getMph();
 										y = numberOfFareClasses;
 										x = numberOfPaths;
 									}
 								}
 							}
 						}
+						else if (operationType == "Sigma") {
+							string From1, To1, From2, To2;
+							extractSigma(Expression, From1, To1, From2, To2);
+							for (int x = 0; x < numberOfLegs; x++) {
+								for (int y = 0; y < numberOfLegs; y++) {
+									if (Legs[x].getFrom() == From1 && Legs[x].getTo() == To1 && Legs[y].getFrom() == From2 && Legs[y].getTo() == To2) {
+										exp3[i] += Sigma[x][y];
+										y = numberOfLegs;
+										x = numOfLegsOfTypeM;
+									}
+								}
+							}
+						}
+						else if (operationType == "ATL") {
+							string From, To;
+							extract1D(Expression, From, To);
+							for (int x = 0; x < numberOfLegs; x++) {
+								if (Legs[x].getFrom() == From && Legs[x].getTo() == To)
+									exp3[i] += ATL[x];
+							}
+						}
+						else if (operationType == "TE") {
+							string From, To;
+							double val;
+							extract1D(Expression, From, To);
+							for (int x = 0; x < numberOfLegs; x++) {
+								if (Legs[x].getFrom() == From && Legs[x].getTo() == To)
+									val = Legs[x].getTE();
+							}
+							if (Constrain1[0] == '*') {
+								Constrain1.erase(0, 1);
+								Expression = extractExpression(Constrain1);
+								string From1, To1, From2, To2;
+								extractSigma(Expression, From1, To1, From2, To2);
+								for (int x = 0; x < numberOfLegs; x++) {
+									for (int y = 0; y < numberOfLegs; y++) {
+										if (Legs[x].getFrom() == From1 && Legs[x].getTo() == To1 && Legs[y].getFrom() == From2 && Legs[y].getTo() == To2) {
+											exp3[i] += (val * Sigma[x][y]);
+											y = numberOfLegs;
+											x = numOfLegsOfTypeM;
+										}
+									}
+								}
+							}
+							else {
+								exp3[i] += val;
+							}
+
+						}
+						else if (operationType == "TT") {
+							string From, To;
+							double val;
+							extract1D(Expression, From, To);
+							for (int x = 0; x < numberOfLegs; x++) {
+								if (Legs[x].getFrom() == From && Legs[x].getTo() == To)
+									val = Legs[x].getTT();
+							}
+							if (Constrain1[0] == '*') {
+								Constrain1.erase(0, 1);
+								Expression = extractExpression(Constrain1);
+								string From1, To1, From2, To2;
+								extractSigma(Expression, From1, To1, From2, To2);
+								for (int x = 0; x < numberOfLegs; x++) {
+									for (int y = 0; y < numberOfLegs; y++) {
+										if (Legs[x].getFrom() == From1 && Legs[x].getTo() == To1 && Legs[y].getFrom() == From2 && Legs[y].getTo() == To2) {
+											exp3[i] += (val * Sigma[x][y]);
+											y = numberOfLegs;
+											x = numOfLegsOfTypeM;
+										}
+									}
+								}
+							}
+							else {
+								exp3[i] += val;
+							}
+
+						}
+						else if (operationType == "TL") {
+							string From, To;
+							double val;
+							extract1D(Expression, From, To);
+							for (int x = 0; x < numberOfLegs; x++) {
+								if (Legs[x].getFrom() == From && Legs[x].getTo() == To)
+									val= Legs[x].getTL();
+							}
+							if (Constrain1[0] == '*') {
+								Constrain1.erase(0, 1);
+								Expression = extractExpression(Constrain1);
+								string From1, To1, From2, To2;
+								extractSigma(Expression, From1, To1, From2, To2);
+								for (int x = 0; x < numberOfLegs; x++) {
+									for (int y = 0; y < numberOfLegs; y++) {
+										if (Legs[x].getFrom() == From1 && Legs[x].getTo() == To1 && Legs[y].getFrom() == From2 && Legs[y].getTo() == To2) {
+											exp3[i] += (val * Sigma[x][y]);
+											y = numberOfLegs;
+											x = numOfLegsOfTypeM;
+										}
+									}
+								}
+							}
+							else {
+								exp3[i] += val;
+							}
+
+						}
+						else if (operationType == "Alpha") {
+							string From, To;
+							extract1D(Expression, From, To);
+							for (int x = 0; x < numberOfLegs; x++) {
+								if (Legs[x].getFrom() == From && Legs[x].getTo() == To)
+									exp3[i] += Alpha[x];
+							}
+						}
+						else if (operationType == "Byta") {
+							string From, To;
+							extract1D(Expression, From, To);
+							for (int x = 0; x < numberOfLegs; x++) {
+								if (Legs[x].getFrom() == From && Legs[x].getTo() == To)
+									exp3[i] += Byta[x];
+							}
+						}
+						else if (operationType == "PL") {
+							string From, To;
+							extract1D(Expression, From, To);
+							for (int x = 0; x < numberOfLegs; x++) {
+								if (Legs[x].getFrom() == From && Legs[x].getTo() == To)
+									exp3[i] += Legs[x].getPL();
+							}
+						}
+						else if (operationType == "PE") {
+							string From, To;
+							extract1D(Expression, From, To);
+							for (int x = 0; x < numberOfLegs; x++) {
+								if (Legs[x].getFrom() == From && Legs[x].getTo() == To)
+									exp3[i] += Legs[x].getPE();
+							}
+						}
+						else if (operationType == "S") {
+							string From1, To1, From2, To2;
+							extractSigma(Expression, From1, To1, From2, To2);
+							double val = 0;
+							for (int x = 0; x < numberOfLegs; x++) {
+								for (int y = 0; y < numberOfLegs; y++) {
+									if (Legs[x].getFrom() == From1 && Legs[x].getTo() == To1 && Legs[x].getFrom() == From2 && Legs[x].getTo() == To2) {
+										val = S[x][y];
+										x = numberOfLegs;
+										y = numberOfLegs;
+									}
+									else if (Legs[y].getFrom() == From1 && Legs[y].getTo() == To1 && Legs[x].getFrom() == From2 && Legs[x].getTo() == To2) {
+										val = S[y][x];
+										x = numberOfLegs;
+										y = numberOfLegs;
+									}
+								}
+							}
+							if (Constrain1[0] == '*') {
+								Constrain1.erase(0, 1);
+								Expression = extractExpression(Constrain1);
+								From1, To1, From2, To2;
+								extractSigma(Expression, From1, To1, From2, To2);
+								for (int x = 0; x < numberOfLegs; x++) {
+									for (int y = 0; y < numberOfLegs; y++) {
+										if (Legs[x].getFrom() == From1 && Legs[x].getTo() == To1 && Legs[y].getFrom() == From2 && Legs[y].getTo() == To2) {
+											exp3[i] += (val * Sigma[x][y]);
+											y = numberOfLegs;
+											x = numOfLegsOfTypeM;
+										}
+										else if (Legs[y].getFrom() == From1 && Legs[y].getTo() == To1 && Legs[x].getFrom() == From2 && Legs[x].getTo() == To2) {
+											exp3[i] += (val * Sigma[y][x]);
+											x = numberOfLegs;
+											y = numberOfLegs;
+										}
+									}
+								}
+							}
+							else {
+								exp3[i] += val;
+							}
+						}
 					}
+				}
+				//Check If end line
+				if (Constrain1[0] == '\n') {
+					if (Condition1 == "="  ) {
+						Model.add(exp2[i] == exp3[i]);
+					}
+					else if (Condition1 == "<="  ) {
+						Model.add(exp2[i] <= exp3[i]);
+					}
+					else if (Condition1 == ">="  ) {
+						Model.add(exp2[i] >= exp3[i]);
+					}
+					else if (Condition1 == "<"  ) {
+						Model.add(exp2[i] < exp3[i]);
+					}
+					else if (Condition1 == ">"  ) {
+						Model.add(exp2[i] > exp3[i]);
+					}
+					operation = '+';
+					Condition1.clear();
+					i++;
+				}
+				else if (Constrain1[0] != '<' && Constrain1[0] != '=' && Constrain1[0] != '>' && Constrain1[0] + Constrain1[1] != '<=' && Constrain1[0] + Constrain1[1] != '>=')
+					operation = Constrain1[0];
+				else if (Constrain1.substr(0, 2) == "<=" || Constrain1.substr(0, 2) == ">=") {
+					operation = '+';
+					Condition1 = Constrain1.substr(0, 2);
+					Constrain1.erase(0, 1);
 				}
 				else
 				{
+					operation = '+';
+					Condition1 = Constrain1[0];
+				}
+				Constrain1.erase(0, 1);
+				break;
+			}
+			case '-':
+			{
+				if (Condition1.empty() ) {
 					if (isIntegerExpression(Constrain1[0])) {
 						string number = extractNumber(Constrain1);
 						int value = stringToInt(number);
@@ -431,7 +716,7 @@ public:
 					}
 					else if (MinMax == "Min" || MinMax == "Max") {
 						Constrain1.erase(0, 4);
-						exp2[i] -= MinMaxValue(Constrain1.substr(0, Constrain1.find('}')+1), MinMax);
+						exp2[i] -= MinMaxValue(Constrain1.substr(0, Constrain1.find('}') + 1), MinMax);
 						Constrain1.erase(0, Constrain1.find_first_of('}') + 1);
 					}
 					else if (Constrain1[0] == '|') {
@@ -444,13 +729,14 @@ public:
 							for (int x = 0; x < numberOfPaths; x++) {
 								if (Paths[x].getFrom() == From && Paths[x].getTo() == To) {
 									exp2[i] -= Paths[x].getLegCount();
-									Constrain1.erase(0, 1);
+
 									break;
 								}
 							}
 						}
 					}
 					else {
+
 						string Expression = extractExpression(Constrain1);
 						string operationType = extractOperationType(Expression);
 						if (operationType == "Cap")
@@ -472,7 +758,7 @@ public:
 						else if (operationType == "X")
 						{
 							string From, To, AirCraftName;
-							extract2D1To2(Expression, AirCraftName, From, To);
+							extractX(Expression, AirCraftName, From, To);
 							for (int x = 0; x < numberOfLegs; x++) {
 								for (int y = 0; y < numberofAirCrafts; y++) {
 									if (AirCrafts[y].getType() == AirCraftName && Legs[x].getFrom() == From && Legs[x].getTo() == To) {
@@ -495,7 +781,7 @@ public:
 						}
 						else if (operationType == "P") {
 							string From, To, FareClassName;
-							extract2D2To1(Expression, From, To, FareClassName);
+							extractP(Expression, From, To, FareClassName);
 							for (int x = 0; x < numberOfPaths; x++) {
 								for (int y = 0; y < numberOfFareClasses; y++) {
 									if (FareClasses[y] == FareClassName && Paths[x].getFrom() == From && Paths[x].getTo() == To) {
@@ -508,7 +794,7 @@ public:
 						}
 						else if (operationType == "M") {
 							string From, To, FareClassName;
-							extract2D2To1(Expression, From, To, FareClassName);
+							extractP(Expression, From, To, FareClassName);
 							for (int x = 0; x < numberOfPaths; x++) {
 								for (int y = 0; y < numberOfFareClasses; y++) {
 									if (FareClasses[y] == FareClassName && Paths[x].getFrom() == From && Paths[x].getTo() == To) {
@@ -519,55 +805,192 @@ public:
 								}
 							}
 						}
+						else if (operationType == "Sigma") {
+							string From1, To1, From2, To2;
+							extractSigma(Expression, From1, To1, From2, To2);
+							for (int x = 0; x < numberOfLegs; x++) {
+								for (int y = 0; y < numberOfLegs; y++) {
+									if (Legs[x].getFrom() == From1 && Legs[x].getTo() == To1 && Legs[y].getFrom() == From2 && Legs[y].getTo() == To2) {
+										exp2[i] -= Sigma[x][y];
+										y = numberOfLegs;
+										x = numOfLegsOfTypeM;
+									}
+								}
+							}
+						}
+						else if (operationType == "ATL") {
+							string From, To;
+							extract1D(Expression, From, To);
+							for (int x = 0; x < numberOfLegs; x++) {
+								if (Legs[x].getFrom() == From && Legs[x].getTo() == To)
+									exp2[i] -= ATL[x];
+							}
+						}
+						else if (operationType == "TE") {
+							string From, To;
+							double val;
+							extract1D(Expression, From, To);
+							for (int x = 0; x < numberOfLegs; x++) {
+								if (Legs[x].getFrom() == From && Legs[x].getTo() == To)
+									val = Legs[x].getTE();
+							}
+							if (Constrain1[0] != '\n') {
+								Constrain1.erase(0, 1);
+								Expression = extractExpression(Constrain1);
+								string From1, To1, From2, To2;
+								extractSigma(Expression, From1, To1, From2, To2);
+								for (int x = 0; x < numberOfLegs; x++) {
+									for (int y = 0; y < numberOfLegs; y++) {
+										if (Legs[x].getFrom() == From1 && Legs[x].getTo() == To1 && Legs[y].getFrom() == From2 && Legs[y].getTo() == To2) {
+											exp2[i] -= (val * Sigma[x][y]);
+											y = numberOfLegs;
+											x = numOfLegsOfTypeM;
+										}
+									}
+								}
+							}
+							else {
+								exp2[i] -= val;
+							}
+
+						}
+						else if (operationType == "TT") {
+							string From, To;
+							double val;
+							extract1D(Expression, From, To);
+							for (int x = 0; x < numberOfLegs; x++) {
+								if (Legs[x].getFrom() == From && Legs[x].getTo() == To)
+									val = Legs[x].getTT();
+							}
+							if (Constrain1[0] != '\n') {
+								Constrain1.erase(0, 1);
+								Expression = extractExpression(Constrain1);
+								string From1, To1, From2, To2;
+								extractSigma(Expression, From1, To1, From2, To2);
+								for (int x = 0; x < numberOfLegs; x++) {
+									for (int y = 0; y < numberOfLegs; y++) {
+										if (Legs[x].getFrom() == From1 && Legs[x].getTo() == To1 && Legs[y].getFrom() == From2 && Legs[y].getTo() == To2) {
+											exp2[i] -= (val * Sigma[x][y]);
+											y = numberOfLegs;
+											x = numOfLegsOfTypeM;
+										}
+									}
+								}
+							}
+							else {
+								exp2[i] -= val;
+							}
+
+						}
+						else if (operationType == "TL") {
+							string From, To;
+							double val;
+							extract1D(Expression, From, To);
+							for (int x = 0; x < numberOfLegs; x++) {
+								if (Legs[x].getFrom() == From && Legs[x].getTo() == To)
+									val = Legs[x].getTL();
+							}
+							if (Constrain1[0] != '\n') {
+								Constrain1.erase(0, 1);
+								Expression = extractExpression(Constrain1);
+								string From1, To1, From2, To2;
+								extractSigma(Expression, From1, To1, From2, To2);
+								for (int x = 0; x < numberOfLegs; x++) {
+									for (int y = 0; y < numberOfLegs; y++) {
+										if (Legs[x].getFrom() == From1 && Legs[x].getTo() == To1 && Legs[y].getFrom() == From2 && Legs[y].getTo() == To2) {
+											exp2[i] -= (val * Sigma[x][y]);
+											y = numberOfLegs;
+											x = numOfLegsOfTypeM;
+										}
+									}
+								}
+							}
+							else {
+								exp2[i] -= val;
+							}
+
+						}
+						else if (operationType == "Alpha") {
+							string From, To;
+							extract1D(Expression, From, To);
+							for (int x = 0; x < numberOfLegs; x++) {
+								if (Legs[x].getFrom() == From && Legs[x].getTo() == To)
+									exp2[i] -= Alpha[x];
+							}
+						}
+						else if (operationType == "Byta") {
+							string From, To;
+							extract1D(Expression, From, To);
+							for (int x = 0; x < numberOfLegs; x++) {
+								if (Legs[x].getFrom() == From && Legs[x].getTo() == To)
+									exp2[i] -= Byta[x];
+							}
+						}
+						else if (operationType == "PL") {
+							string From, To;
+							extract1D(Expression, From, To);
+							for (int x = 0; x < numberOfLegs; x++) {
+								if (Legs[x].getFrom() == From && Legs[x].getTo() == To)
+									exp2[i] -= Legs[x].getPL();
+							}
+						}
+						else if (operationType == "PE") {
+							string From, To;
+							extract1D(Expression, From, To);
+							for (int x = 0; x < numberOfLegs; x++) {
+								if (Legs[x].getFrom() == From && Legs[x].getTo() == To)
+									exp2[i] -= Legs[x].getPE();
+							}
+						}
+						else if (operationType == "S") {
+							string From1, To1, From2, To2;
+							extractSigma(Expression, From1, To1, From2, To2);
+							double val = 0;
+							for (int x = 0; x < numberOfLegs; x++) {
+								for (int y = 0; y < numberOfLegs; y++) {
+									if (Legs[x].getFrom() == From1 && Legs[x].getTo() == To1 && Legs[x].getFrom() == From2 && Legs[x].getTo() == To2) {
+										val = S[x][y];
+										x = numberOfLegs;
+										y = numberOfLegs;
+									}
+									else if (Legs[y].getFrom() == From1 && Legs[y].getTo() == To1 && Legs[x].getFrom() == From2 && Legs[x].getTo() == To2) {
+										exp2[i] -= S[y][x];
+										x = numberOfLegs;
+										y = numberOfLegs;
+									}
+								}
+							}
+							if (Constrain1[0] != '\n') {
+								Constrain1.erase(0, 1);
+								Expression = extractExpression(Constrain1);
+								From1, To1, From2, To2;
+								extractSigma(Expression, From1, To1, From2, To2);
+								for (int x = 0; x < numberOfLegs; x++) {
+									for (int y = 0; y < numberOfLegs; y++) {
+										if (Legs[x].getFrom() == From1 && Legs[x].getTo() == To1 && Legs[y].getFrom() == From2 && Legs[y].getTo() == To2) {
+											exp2[i] -= (val * Sigma[x][y]);
+											y = numberOfLegs;
+											x = numOfLegsOfTypeM;
+										}
+									}
+								}
+							}
+							else {
+								exp2[i] -= val;
+							}
+							}
 					}
-				}
-				//Check If end line
-				if (Constrain1[0] == '\n') {
-					if (Condition == "=") {
-						Model.add(exp1[i] == exp2[i]);
-					}
-					else if (Condition == "<=") {
-						Model.add(exp1[i] <= exp2[i]);
-					}
-					else if (Condition == ">=") {
-						Model.add(exp1[i] >= exp2[i]);
-					}
-					else if (Condition == "<") {
-						Model.add(exp1[i] < exp2[i]);
-					}
-					else if (Condition == ">") {
-						Model.add(exp1[i] > exp2[i]);
-					}
-					operation = '+';
-					Condition.clear();
-					i++;
-				}
-				else if (Constrain1[0] != '<' && Constrain1[0] != '=' && Constrain1[0] != '>' && Constrain1[0] + Constrain1[1] != '<=' && Constrain1[0] + Constrain1[1] != '>=')
-					operation = Constrain1[0];
-				else if (Constrain1.substr(0, 2) == "<=" || Constrain1.substr(0, 2) == ">=") {
-					operation = '+';
-					Condition = Constrain1.substr(0, 2);
-					Constrain1.erase(0, 1);
 				}
 				else
 				{
-					operation = '+';
-					Condition = Constrain1[0];
-				}
-				Constrain1.erase(0, 1);
-				break;
-			}
-			case '*':
-			{
-				if (Condition.empty()) {
 					if (isIntegerExpression(Constrain1[0])) {
 						string number = extractNumber(Constrain1);
 						int value = stringToInt(number);
-						exp1[i] *= value;
+						exp3[i] -= value;
 					}
 					else if (MinMax == "Min" || MinMax == "Max") {
 						Constrain1.erase(0, 4);
-						exp1[i] *= MinMaxValue(Constrain1.substr(0, Constrain1.find('}')+1), MinMax);
+						exp3[i] -= MinMaxValue(Constrain1.substr(0, Constrain1.find('}') + 1), MinMax);
 						Constrain1.erase(0, Constrain1.find_first_of('}') + 1);
 					}
 					else if (Constrain1[0] == '|') {
@@ -579,15 +1002,14 @@ public:
 							extract1D(Expression, From, To);
 							for (int x = 0; x < numberOfPaths; x++) {
 								if (Paths[x].getFrom() == From && Paths[x].getTo() == To) {
-									exp1[i] *= Paths[x].getLegCount();
-
+									exp3[i] -= Paths[x].getLegCount();
+									Constrain1.erase(0, 1);
 									break;
 								}
 							}
 						}
 					}
 					else {
-
 						string Expression = extractExpression(Constrain1);
 						string operationType = extractOperationType(Expression);
 						if (operationType == "Cap")
@@ -598,7 +1020,7 @@ public:
 								for (int y = 0; y < numberOfFareClasses; y++)
 								{
 									if (AirCrafts[x].getType() == AirCraftType && FareClasses[y] == FareClassName) {
-										exp1[i] *= AirCrafts[x].getFareClasses()[y].getCapah();
+										exp3[i] -= AirCrafts[x].getFareClasses()[y].getCapah();
 										x = numberofAirCrafts;
 										y = numberOfFareClasses;
 									}
@@ -606,23 +1028,271 @@ public:
 							}
 
 						}
-						else if (operationType == "M") {
+						else if (operationType == "X")
+						{
+							string From, To, AirCraftName;
+							extractX(Expression, AirCraftName, From, To);
+							for (int x = 0; x < numberOfLegs; x++) {
+								for (int y = 0; y < numberofAirCrafts; y++) {
+									if (AirCrafts[y].getType() == AirCraftName && Legs[x].getFrom() == From && Legs[x].getTo() == To) {
+										exp3[i] -= X[y][x];
+										y = numberofAirCrafts;
+										x = numOfLegsOfTypeM;
+									}
+								}
+							}
+						}
+						else if (operationType == "Z") {
+							string From, To;
+							extract1D(Expression, From, To);
+							for (int x = 0; x < numberOfPaths; x++) {
+								if (Paths[x].getFrom() == From && Paths[x].getTo() == To) {
+									exp3[i] -= Z[x];
+									x = numberOfPaths;
+								}
+							}
+						}
+						else if (operationType == "P") {
 							string From, To, FareClassName;
-							extract2D2To1(Expression, From, To, FareClassName);
+							extractP(Expression, From, To, FareClassName);
 							for (int x = 0; x < numberOfPaths; x++) {
 								for (int y = 0; y < numberOfFareClasses; y++) {
 									if (FareClasses[y] == FareClassName && Paths[x].getFrom() == From && Paths[x].getTo() == To) {
-										exp1[i] *= Paths[x].getFareClasses()[y].getMph();
+										exp3[i] -= P[x][y];
 										y = numberOfFareClasses;
 										x = numberOfPaths;
 									}
 								}
 							}
 						}
+						else if (operationType == "M") {
+							string From, To, FareClassName;
+							extractP(Expression, From, To, FareClassName);
+							for (int x = 0; x < numberOfPaths; x++) {
+								for (int y = 0; y < numberOfFareClasses; y++) {
+									if (FareClasses[y] == FareClassName && Paths[x].getFrom() == From && Paths[x].getTo() == To) {
+										exp3[i] -= Paths[x].getFareClasses()[y].getMph();
+										y = numberOfFareClasses;
+										x = numberOfPaths;
+									}
+								}
+							}
+						}
+						else if (operationType == "Sigma") {
+							string From1, To1, From2, To2;
+							extractSigma(Expression, From1, To1, From2, To2);
+							for (int x = 0; x < numberOfLegs; x++) {
+								for (int y = 0; y < numberOfLegs; y++) {
+									if (Legs[x].getFrom() == From1 && Legs[x].getTo() == To1 && Legs[y].getFrom() == From2 && Legs[y].getTo() == To2) {
+										exp3[i] -= Sigma[x][y];
+										y = numberOfLegs;
+										x = numOfLegsOfTypeM;
+									}
+								}
+							}
+						}
+						else if (operationType == "ATL") {
+							string From, To;
+							extract1D(Expression, From, To);
+							for (int x = 0; x < numberOfLegs; x++) {
+								if (Legs[x].getFrom() == From && Legs[x].getTo() == To)
+									exp3[i] -= ATL[x];
+							}
+						}
+						else if (operationType == "TE") {
+							string From, To;
+							double val;
+							extract1D(Expression, From, To);
+							for (int x = 0; x < numberOfLegs; x++) {
+								if (Legs[x].getFrom() == From && Legs[x].getTo() == To)
+									val = Legs[x].getTE();
+							}
+							if (Constrain1[0] != '\n') {
+								Constrain1.erase(0, 1);
+								Expression = extractExpression(Constrain1);
+								string From1, To1, From2, To2;
+								extractSigma(Expression, From1, To1, From2, To2);
+								for (int x = 0; x < numberOfLegs; x++) {
+									for (int y = 0; y < numberOfLegs; y++) {
+										if (Legs[x].getFrom() == From1 && Legs[x].getTo() == To1 && Legs[y].getFrom() == From2 && Legs[y].getTo() == To2) {
+											exp3[i] -= (val * Sigma[x][y]);
+											y = numberOfLegs;
+											x = numOfLegsOfTypeM;
+										}
+									}
+								}
+							}
+							else {
+								exp3[i] -= val;
+							}
+
+						}
+						else if (operationType == "TT") {
+							string From, To;
+							double val;
+							extract1D(Expression, From, To);
+							for (int x = 0; x < numberOfLegs; x++) {
+								if (Legs[x].getFrom() == From && Legs[x].getTo() == To)
+									val = Legs[x].getTT();
+							}
+							if (Constrain1[0] != '\n') {
+								Constrain1.erase(0, 1);
+								Expression = extractExpression(Constrain1);
+								string From1, To1, From2, To2;
+								extractSigma(Expression, From1, To1, From2, To2);
+								for (int x = 0; x < numberOfLegs; x++) {
+									for (int y = 0; y < numberOfLegs; y++) {
+										if (Legs[x].getFrom() == From1 && Legs[x].getTo() == To1 && Legs[y].getFrom() == From2 && Legs[y].getTo() == To2) {
+											exp3[i] -= (val * Sigma[x][y]);
+											y = numberOfLegs;
+											x = numOfLegsOfTypeM;
+										}
+									}
+								}
+							}
+							else {
+								exp3[i] -= val;
+							}
+
+						}
+						else if (operationType == "TL") {
+							string From, To;
+							double val;
+							extract1D(Expression, From, To);
+							for (int x = 0; x < numberOfLegs; x++) {
+								if (Legs[x].getFrom() == From && Legs[x].getTo() == To)
+									val = Legs[x].getTL();
+							}
+							if (Constrain1[0] == '*') {
+								Constrain1.erase(0, 1);
+								Expression = extractExpression(Constrain1);
+								string From1, To1, From2, To2;
+								extractSigma(Expression, From1, To1, From2, To2);
+								for (int x = 0; x < numberOfLegs; x++) {
+									for (int y = 0; y < numberOfLegs; y++) {
+										if (Legs[x].getFrom() == From1 && Legs[x].getTo() == To1 && Legs[y].getFrom() == From2 && Legs[y].getTo() == To2) {
+											exp3[i] -= (val * Sigma[x][y]);
+											y = numberOfLegs;
+											x = numOfLegsOfTypeM;
+										}
+									}
+								}
+							}
+							else {
+								exp3[i] -= val;
+							}
+
+						}
+						else if (operationType == "Alpha") {
+							string From, To;
+							extract1D(Expression, From, To);
+							for (int x = 0; x < numberOfLegs; x++) {
+								if (Legs[x].getFrom() == From && Legs[x].getTo() == To)
+									exp3[i] -= Alpha[x];
+							}
+						}
+						else if (operationType == "Byta") {
+							string From, To;
+							extract1D(Expression, From, To);
+							for (int x = 0; x < numberOfLegs; x++) {
+								if (Legs[x].getFrom() == From && Legs[x].getTo() == To)
+									exp3[i] -= Byta[x];
+							}
+						}
+						else if (operationType == "PL") {
+							string From, To;
+							extract1D(Expression, From, To);
+							for (int x = 0; x < numberOfLegs; x++) {
+								if (Legs[x].getFrom() == From && Legs[x].getTo() == To)
+									exp3[i] -= Legs[x].getPL();
+							}
+						}
+						else if (operationType == "PE") {
+							string From, To;
+							extract1D(Expression, From, To);
+							for (int x = 0; x < numberOfLegs; x++) {
+								if (Legs[x].getFrom() == From && Legs[x].getTo() == To)
+									exp3[i] -= Legs[x].getPE();
+							}
+						}
+						else if (operationType == "S") {
+							string From1, To1, From2, To2;
+							extractSigma(Expression, From1, To1, From2, To2);
+							double val = 0;
+							for (int x = 0; x < numberOfLegs; x++) {
+								for (int y = 0; y < numberOfLegs; y++) {
+									if (Legs[x].getFrom() == From1 && Legs[x].getTo() == To1 && Legs[x].getFrom() == From2 && Legs[x].getTo() == To2) {
+										val = S[x][y];
+										x = numberOfLegs;
+										y = numberOfLegs;
+									}
+									else if (Legs[y].getFrom() == From1 && Legs[y].getTo() == To1 && Legs[x].getFrom() == From2 && Legs[x].getTo() == To2) {
+										exp3[i] -= S[y][x];
+										x = numberOfLegs;
+										y = numberOfLegs;
+									}
+								}
+							}
+							if (Constrain1[0] != '\n') {
+								Constrain1.erase(0, 1);
+								Expression = extractExpression(Constrain1);
+								From1, To1, From2, To2;
+								extractSigma(Expression, From1, To1, From2, To2);
+								for (int x = 0; x < numberOfLegs; x++) {
+									for (int y = 0; y < numberOfLegs; y++) {
+										if (Legs[x].getFrom() == From1 && Legs[x].getTo() == To1 && Legs[y].getFrom() == From2 && Legs[y].getTo() == To2) {
+											exp3[i] -= (val * Sigma[x][y]);
+											y = numberOfLegs;
+											x = numOfLegsOfTypeM;
+										}
+									}
+								}
+							}
+							else {
+								exp3[i] -= val;
+							}
+							}
 					}
+				}
+				//Check If end line
+				if (Constrain1[0] == '\n') {
+					if (Condition1 == "="  ) {
+						Model.add(exp2[i] == exp3[i]);
+					}
+					else if (Condition1 == "<="  ) {
+						Model.add(exp2[i] <= exp3[i]);
+					}
+					else if (Condition1 == ">="  ) {
+						Model.add(exp2[i] >= exp3[i]);
+					}
+					else if (Condition1 == "<"  ) {
+						Model.add(exp2[i] < exp3[i]);
+					}
+					else if (Condition1 == ">"  ) {
+						Model.add(exp2[i] > exp3[i]);
+					}
+					operation = '+';
+					Condition1.clear();
+					i++;
+				}
+				else if (Constrain1[0] != '<' && Constrain1[0] != '=' && Constrain1[0] != '>' && Constrain1[0] + Constrain1[1] != '<=' && Constrain1[0] + Constrain1[1] != '>=')
+					operation = Constrain1[0];
+				else if (Constrain1.substr(0, 2) == "<=" || Constrain1.substr(0, 2) == ">=") {
+					operation = '+';
+					Condition1 = Constrain1.substr(0, 2);
+					Constrain1.erase(0, 1);
 				}
 				else
 				{
+					operation = '+';
+					Condition1 = Constrain1[0];
+				}
+				Constrain1.erase(0, 1);
+				break;
+			}
+			case '*':
+			{
+				if (Condition1.empty() ) {
 					if (isIntegerExpression(Constrain1[0])) {
 						string number = extractNumber(Constrain1);
 						int value = stringToInt(number);
@@ -630,7 +1300,7 @@ public:
 					}
 					else if (MinMax == "Min" || MinMax == "Max") {
 						Constrain1.erase(0, 4);
-						exp2[i] *= MinMaxValue(Constrain1.substr(0, Constrain1.find('}')+1), MinMax);
+						exp2[i] *= MinMaxValue(Constrain1.substr(0, Constrain1.find('}') + 1), MinMax);
 						Constrain1.erase(0, Constrain1.find_first_of('}') + 1);
 					}
 					else if (Constrain1[0] == '|') {
@@ -643,13 +1313,14 @@ public:
 							for (int x = 0; x < numberOfPaths; x++) {
 								if (Paths[x].getFrom() == From && Paths[x].getTo() == To) {
 									exp2[i] *= Paths[x].getLegCount();
-									Constrain1.erase(0, 1);
+
 									break;
 								}
 							}
 						}
 					}
 					else {
+
 						string Expression = extractExpression(Constrain1);
 						string operationType = extractOperationType(Expression);
 						if (operationType == "Cap")
@@ -670,7 +1341,7 @@ public:
 						}
 						else if (operationType == "M") {
 							string From, To, FareClassName;
-							extract2D2To1(Expression, From, To, FareClassName);
+							extractP(Expression, From, To, FareClassName);
 							for (int x = 0; x < numberOfPaths; x++) {
 								for (int y = 0; y < numberOfFareClasses; y++) {
 									if (FareClasses[y] == FareClassName && Paths[x].getFrom() == From && Paths[x].getTo() == To) {
@@ -681,102 +1352,55 @@ public:
 								}
 							}
 						}
-					}
-				}
-				//Check If end line
-				if (Constrain1[0] == '\n') {
-					if (Condition == "=") {
-						Model.add(exp1[i] == exp2[i]);
-					}
-					else if (Condition == "<=") {
-						Model.add(exp1[i] <= exp2[i]);
-					}
-					else if (Condition == ">=") {
-						Model.add(exp1[i] >= exp2[i]);
-					}
-					else if (Condition == "<") {
-						Model.add(exp1[i] < exp2[i]);
-					}
-					else if (Condition == ">") {
-						Model.add(exp1[i] > exp2[i]);
-					}
-					operation = '+';
-					Condition.clear();
-					i++;
-				}
-				else if (Constrain1[0] != '<' && Constrain1[0] != '=' && Constrain1[0] != '>' && Constrain1[0] + Constrain1[1] != '<=' && Constrain1[0] + Constrain1[1] != '>=')
-					operation = Constrain1[0];
-				else if (Constrain1.substr(0, 2) == "<=" || Constrain1.substr(0, 2) == ">=") {
-					operation = '+';
-					Condition = Constrain1.substr(0, 2);
-					Constrain1.erase(0, 1);
-				}
-				else
-				{
-					operation = '+';
-					Condition = Constrain1[0];
-				}
-				Constrain1.erase(0, 1);
-				break;
-			}
-			case '/':
-			{
-				if (Condition.empty()) {
-					if (isIntegerExpression(Constrain1[0])) {
-						string number = extractNumber(Constrain1);
-						int value = stringToInt(number);
-						exp1[i] /= value;
-					}
-					else if (MinMax == "Min" || MinMax == "Max") {
-						Constrain1.erase(0, 4);
-						exp1[i] /= MinMaxValue(Constrain1.substr(0, Constrain1.find('}')+1), MinMax);
-						Constrain1.erase(0, Constrain1.find_first_of('}') + 1);
-					}
-					else if (Constrain1[0] == '|') {
-						Constrain1.erase(0, 1);
-						string Expression = extractExpression(Constrain1);
-						string operationType = extractOperationType(Expression);
-						if (operationType == "L") {
+						else if (operationType == "TE") {
 							string From, To;
 							extract1D(Expression, From, To);
-							for (int x = 0; x < numberOfPaths; x++) {
-								if (Paths[x].getFrom() == From && Paths[x].getTo() == To) {
-									exp1[i] /= Paths[x].getLegCount();
-
-									break;
-								}
+							for (int x = 0; x < numberOfLegs; x++) {
+								if (Legs[x].getFrom() == From && Legs[x].getTo() == To)
+									exp2[i] *= Legs[x].getTE();
 							}
 						}
-					}
-					else {
-
-						string Expression = extractExpression(Constrain1);
-						string operationType = extractOperationType(Expression);
-						if (operationType == "Cap")
-						{
-							string AirCraftType, FareClassName;
-							extract1D(Expression, AirCraftType, FareClassName);
-							for (int x = 0; x < numberofAirCrafts; x++) {
-								for (int y = 0; y < numberOfFareClasses; y++)
-								{
-									if (AirCrafts[x].getType() == AirCraftType && FareClasses[y] == FareClassName) {
-										exp1[i] /= AirCrafts[x].getFareClasses()[y].getCapah();
-										x = numberofAirCrafts;
-										y = numberOfFareClasses;
-									}
-								}
+						else if (operationType == "TT") {
+							string From, To;
+							extract1D(Expression, From, To);
+							for (int x = 0; x < numberOfLegs; x++) {
+								if (Legs[x].getFrom() == From && Legs[x].getTo() == To)
+									exp2[i] *= Legs[x].getTT();
 							}
-
 						}
-						else if (operationType == "M") {
-							string From, To, FareClassName;
-							extract2D2To1(Expression, From, To, FareClassName);
-							for (int x = 0; x < numberOfPaths; x++) {
-								for (int y = 0; y < numberOfFareClasses; y++) {
-									if (FareClasses[y] == FareClassName && Paths[x].getFrom() == From && Paths[x].getTo() == To) {
-										exp1[i] /= Paths[x].getFareClasses()[y].getMph();
-										y = numberOfFareClasses;
-										x = numberOfPaths;
+						else if (operationType == "TL") {
+							string From, To;
+							extract1D(Expression, From, To);
+							for (int x = 0; x < numberOfLegs; x++) {
+								if (Legs[x].getFrom() == From && Legs[x].getTo() == To)
+									exp2[i] *= Legs[x].getTL();
+							}
+						}
+						else if (operationType == "PL") {
+							string From, To;
+							extract1D(Expression, From, To);
+							for (int x = 0; x < numberOfLegs; x++) {
+								if (Legs[x].getFrom() == From && Legs[x].getTo() == To)
+									exp2[i] *= Legs[x].getPL();
+							}
+						}
+						else if (operationType == "PE") {
+							string From, To;
+							extract1D(Expression, From, To);
+							for (int x = 0; x < numberOfLegs; x++) {
+								if (Legs[x].getFrom() == From && Legs[x].getTo() == To)
+									exp2[i] *= Legs[x].getPE();
+							}
+						}
+						else if (operationType == "S") {
+							string From1, To1, From2, To2;
+							extractSigma(Expression, From1, To1, From2, To2);
+							for (int x = 0; x < numberOfLegs; x++) {
+								for (int y = 0; y < numberOfLegs; y++) {
+									if (Legs[x].getFrom() == From1 && Legs[x].getTo() == To1 && Legs[y].getFrom() == From2 && Legs[y].getTo() == To2) {
+										exp2[i] *= S[x][y];
+										y = numberOfLegs;
+										x = numOfLegsOfTypeM;
 									}
 								}
 							}
@@ -788,11 +1412,11 @@ public:
 					if (isIntegerExpression(Constrain1[0])) {
 						string number = extractNumber(Constrain1);
 						int value = stringToInt(number);
-						exp2[i] /= value;
+						exp3[i] *= value;
 					}
 					else if (MinMax == "Min" || MinMax == "Max") {
 						Constrain1.erase(0, 4);
-						exp2[i] /= MinMaxValue(Constrain1.substr(0, Constrain1.find('}')+1), MinMax);
+						exp3[i] *= MinMaxValue(Constrain1.substr(0, Constrain1.find('}') + 1), MinMax);
 						Constrain1.erase(0, Constrain1.find_first_of('}') + 1);
 					}
 					else if (Constrain1[0] == '|') {
@@ -804,7 +1428,7 @@ public:
 							extract1D(Expression, From, To);
 							for (int x = 0; x < numberOfPaths; x++) {
 								if (Paths[x].getFrom() == From && Paths[x].getTo() == To) {
-									exp2[i] /= Paths[x].getLegCount();
+									exp3[i] *= Paths[x].getLegCount();
 									Constrain1.erase(0, 1);
 									break;
 								}
@@ -822,7 +1446,7 @@ public:
 								for (int y = 0; y < numberOfFareClasses; y++)
 								{
 									if (AirCrafts[x].getType() == AirCraftType && FareClasses[y] == FareClassName) {
-										exp2[i] += AirCrafts[x].getFareClasses()[y].getCapah();
+										exp3[i] *= AirCrafts[x].getFareClasses()[y].getCapah();
 										x = numberofAirCrafts;
 										y = numberOfFareClasses;
 									}
@@ -832,7 +1456,161 @@ public:
 						}
 						else if (operationType == "M") {
 							string From, To, FareClassName;
-							extract2D2To1(Expression, From, To, FareClassName);
+							extractP(Expression, From, To, FareClassName);
+							for (int x = 0; x < numberOfPaths; x++) {
+								for (int y = 0; y < numberOfFareClasses; y++) {
+									if (FareClasses[y] == FareClassName && Paths[x].getFrom() == From && Paths[x].getTo() == To) {
+										exp3[i] *= Paths[x].getFareClasses()[y].getMph();
+										y = numberOfFareClasses;
+										x = numberOfPaths;
+									}
+								}
+							}
+						}
+						else if (operationType == "TE") {
+							string From, To;
+							extract1D(Expression, From, To);
+							for (int x = 0; x < numberOfLegs; x++) {
+								if (Legs[x].getFrom() == From && Legs[x].getTo() == To)
+									exp3[i] *= Legs[x].getTE();
+							}
+						}
+						else if (operationType == "TT") {
+							string From, To;
+							extract1D(Expression, From, To);
+							for (int x = 0; x < numberOfLegs; x++) {
+								if (Legs[x].getFrom() == From && Legs[x].getTo() == To)
+									exp3[i] *= Legs[x].getTT();
+							}
+						}
+						else if (operationType == "TL") {
+							string From, To;
+							extract1D(Expression, From, To);
+							for (int x = 0; x < numberOfLegs; x++) {
+								if (Legs[x].getFrom() == From && Legs[x].getTo() == To)
+									exp3[i] *= Legs[x].getTL();
+							}
+						}
+						else if (operationType == "PL") {
+							string From, To;
+							extract1D(Expression, From, To);
+							for (int x = 0; x < numberOfLegs; x++) {
+								if (Legs[x].getFrom() == From && Legs[x].getTo() == To)
+									exp3[i] *= Legs[x].getPL();
+							}
+						}
+						else if (operationType == "PE") {
+							string From, To;
+							extract1D(Expression, From, To);
+							for (int x = 0; x < numberOfLegs; x++) {
+								if (Legs[x].getFrom() == From && Legs[x].getTo() == To)
+									exp3[i] *= Legs[x].getPE();
+							}
+						}
+						else if (operationType == "S") {
+							string From1, To1, From2, To2;
+							extractSigma(Expression, From1, To1, From2, To2);
+							for (int x = 0; x < numberOfLegs; x++) {
+								for (int y = 0; y < numberOfLegs; y++) {
+									if (Legs[x].getFrom() == From1 && Legs[x].getTo() == To1 && Legs[y].getFrom() == From2 && Legs[y].getTo() == To2) {
+										exp3[i] *= S[x][y];
+										y = numberOfLegs;
+										x = numOfLegsOfTypeM;
+									}
+								}
+							}
+						}
+
+					}
+				}
+				//Check If end line
+				if (Constrain1[0] == '\n') {
+					if (Condition1 == "="  ) {
+						Model.add(exp2[i] == exp3[i]);
+					}
+					else if (Condition1 == "<="  ) {
+						Model.add(exp2[i] <= exp3[i]);
+					}
+					else if (Condition1 == ">="  ) {
+						Model.add(exp2[i] >= exp3[i]);
+					}
+					else if (Condition1 == "<"  ) {
+						Model.add(exp2[i] < exp3[i]);
+					}
+					else if (Condition1 == ">"  ) {
+						Model.add(exp2[i] > exp3[i]);
+					}
+					operation = '+';
+					Condition1.clear();
+					i++;
+				}
+				else if (Constrain1[0] != '<' && Constrain1[0] != '=' && Constrain1[0] != '>' && Constrain1[0] + Constrain1[1] != '<=' && Constrain1[0] + Constrain1[1] != '>=')
+					operation = Constrain1[0];
+				else if (Constrain1.substr(0, 2) == "<=" || Constrain1.substr(0, 2) == ">=") {
+					operation = '+';
+					Condition1 = Constrain1.substr(0, 2);
+					Constrain1.erase(0, 1);
+				}
+				else
+				{
+					operation = '+';
+					Condition1 = Constrain1[0];
+				}
+				Constrain1.erase(0, 1);
+				break;
+			}
+			case '/':
+			{
+				if (Condition1.empty() ) {
+					if (isIntegerExpression(Constrain1[0])) {
+						string number = extractNumber(Constrain1);
+						int value = stringToInt(number);
+						exp2[i] /= value;
+					}
+					else if (MinMax == "Min" || MinMax == "Max") {
+						Constrain1.erase(0, 4);
+						exp2[i] /= MinMaxValue(Constrain1.substr(0, Constrain1.find('}') + 1), MinMax);
+						Constrain1.erase(0, Constrain1.find_first_of('}') + 1);
+					}
+					else if (Constrain1[0] == '|') {
+						Constrain1.erase(0, 1);
+						string Expression = extractExpression(Constrain1);
+						string operationType = extractOperationType(Expression);
+						if (operationType == "L") {
+							string From, To;
+							extract1D(Expression, From, To);
+							for (int x = 0; x < numberOfPaths; x++) {
+								if (Paths[x].getFrom() == From && Paths[x].getTo() == To) {
+									exp2[i] /= Paths[x].getLegCount();
+
+									break;
+								}
+							}
+						}
+					}
+					else {
+
+						string Expression = extractExpression(Constrain1);
+						string operationType = extractOperationType(Expression);
+						if (operationType == "Cap")
+						{
+							string AirCraftType, FareClassName;
+							extract1D(Expression, AirCraftType, FareClassName);
+							for (int x = 0; x < numberofAirCrafts; x++) {
+								for (int y = 0; y < numberOfFareClasses; y++)
+								{
+									if (AirCrafts[x].getType() == AirCraftType && FareClasses[y] == FareClassName) {
+										exp2[i] /= AirCrafts[x].getFareClasses()[y].getCapah();
+										x = numberofAirCrafts;
+										y = numberOfFareClasses;
+									}
+								}
+							}
+
+						}
+						else if (operationType == "M") {
+							string From, To, FareClassName;
+							extractP(Expression, From, To, FareClassName);
 							for (int x = 0; x < numberOfPaths; x++) {
 								for (int y = 0; y < numberOfFareClasses; y++) {
 									if (FareClasses[y] == FareClassName && Paths[x].getFrom() == From && Paths[x].getTo() == To) {
@@ -843,40 +1621,208 @@ public:
 								}
 							}
 						}
+						else if (operationType == "TE") {
+							string From, To;
+							extract1D(Expression, From, To);
+							for (int x = 0; x < numberOfLegs; x++) {
+								if (Legs[x].getFrom() == From && Legs[x].getTo() == To)
+									exp2[i] /= Legs[x].getTE();
+							}
+						}
+						else if (operationType == "TT") {
+							string From, To;
+							extract1D(Expression, From, To);
+							for (int x = 0; x < numberOfLegs; x++) {
+								if (Legs[x].getFrom() == From && Legs[x].getTo() == To)
+									exp2[i] /= Legs[x].getTT();
+							}
+						}
+						else if (operationType == "TL") {
+							string From, To;
+							extract1D(Expression, From, To);
+							for (int x = 0; x < numberOfLegs; x++) {
+								if (Legs[x].getFrom() == From && Legs[x].getTo() == To)
+									exp2[i] /= Legs[x].getTL();
+							}
+						}
+						else if (operationType == "PL") {
+							string From, To;
+							extract1D(Expression, From, To);
+							for (int x = 0; x < numberOfLegs; x++) {
+								if (Legs[x].getFrom() == From && Legs[x].getTo() == To)
+									exp2[i] /= Legs[x].getPL();
+							}
+						}
+						else if (operationType == "PE") {
+							string From, To;
+							extract1D(Expression, From, To);
+							for (int x = 0; x < numberOfLegs; x++) {
+								if (Legs[x].getFrom() == From && Legs[x].getTo() == To)
+									exp2[i] /= Legs[x].getPE();
+							}
+						}
+						else if (operationType == "S") {
+							string From1, To1, From2, To2;
+							extractSigma(Expression, From1, To1, From2, To2);
+							for (int x = 0; x < numberOfLegs; x++) {
+								for (int y = 0; y < numberOfLegs; y++) {
+									if (Legs[x].getFrom() == From1 && Legs[x].getTo() == To1 && Legs[y].getFrom() == From2 && Legs[y].getTo() == To2) {
+										exp2[i] /= S[x][y];
+										y = numberOfLegs;
+										x = numOfLegsOfTypeM;
+									}
+								}
+							}
+						}
+					}
+				}
+				else
+				{
+					if (isIntegerExpression(Constrain1[0])) {
+						string number = extractNumber(Constrain1);
+						int value = stringToInt(number);
+						exp3[i] /= value;
+					}
+					else if (MinMax == "Min" || MinMax == "Max") {
+						Constrain1.erase(0, 4);
+						exp3[i] /= MinMaxValue(Constrain1.substr(0, Constrain1.find('}') + 1), MinMax);
+						Constrain1.erase(0, Constrain1.find_first_of('}') + 1);
+					}
+					else if (Constrain1[0] == '|') {
+						Constrain1.erase(0, 1);
+						string Expression = extractExpression(Constrain1);
+						string operationType = extractOperationType(Expression);
+						if (operationType == "L") {
+							string From, To;
+							extract1D(Expression, From, To);
+							for (int x = 0; x < numberOfPaths; x++) {
+								if (Paths[x].getFrom() == From && Paths[x].getTo() == To) {
+									exp3[i] /= Paths[x].getLegCount();
+									Constrain1.erase(0, 1);
+									break;
+								}
+							}
+						}
+					}
+					else {
+						string Expression = extractExpression(Constrain1);
+						string operationType = extractOperationType(Expression);
+						if (operationType == "Cap")
+						{
+							string AirCraftType, FareClassName;
+							extract1D(Expression, AirCraftType, FareClassName);
+							for (int x = 0; x < numberofAirCrafts; x++) {
+								for (int y = 0; y < numberOfFareClasses; y++)
+								{
+									if (AirCrafts[x].getType() == AirCraftType && FareClasses[y] == FareClassName) {
+										exp3[i] += AirCrafts[x].getFareClasses()[y].getCapah();
+										x = numberofAirCrafts;
+										y = numberOfFareClasses;
+									}
+								}
+							}
+
+						}
+						else if (operationType == "M") {
+							string From, To, FareClassName;
+							extractP(Expression, From, To, FareClassName);
+							for (int x = 0; x < numberOfPaths; x++) {
+								for (int y = 0; y < numberOfFareClasses; y++) {
+									if (FareClasses[y] == FareClassName && Paths[x].getFrom() == From && Paths[x].getTo() == To) {
+										exp3[i] /= Paths[x].getFareClasses()[y].getMph();
+										y = numberOfFareClasses;
+										x = numberOfPaths;
+									}
+								}
+							}
+						}
+						else if (operationType == "TE") {
+							string From, To;
+							extract1D(Expression, From, To);
+							for (int x = 0; x < numberOfLegs; x++) {
+								if (Legs[x].getFrom() == From && Legs[x].getTo() == To)
+									exp3[i] /= Legs[x].getTE();
+							}
+						}
+						else if (operationType == "TT") {
+							string From, To;
+							extract1D(Expression, From, To);
+							for (int x = 0; x < numberOfLegs; x++) {
+								if (Legs[x].getFrom() == From && Legs[x].getTo() == To)
+									exp3[i] /= Legs[x].getTT();
+							}
+						}
+						else if (operationType == "TL") {
+							string From, To;
+							extract1D(Expression, From, To);
+							for (int x = 0; x < numberOfLegs; x++) {
+								if (Legs[x].getFrom() == From && Legs[x].getTo() == To)
+									exp3[i] /= Legs[x].getTL();
+							}
+						}
+						else if (operationType == "PL") {
+							string From, To;
+							extract1D(Expression, From, To);
+							for (int x = 0; x < numberOfLegs; x++) {
+								if (Legs[x].getFrom() == From && Legs[x].getTo() == To)
+									exp3[i] /= Legs[x].getPL();
+							}
+						}
+						else if (operationType == "PE") {
+							string From, To;
+							extract1D(Expression, From, To);
+							for (int x = 0; x < numberOfLegs; x++) {
+								if (Legs[x].getFrom() == From && Legs[x].getTo() == To)
+									exp3[i] /= Legs[x].getPE();
+							}
+						}
+						else if (operationType == "S") {
+							string From1, To1, From2, To2;
+							extractSigma(Expression, From1, To1, From2, To2);
+							for (int x = 0; x < numberOfLegs; x++) {
+								for (int y = 0; y < numberOfLegs; y++) {
+									if (Legs[x].getFrom() == From1 && Legs[x].getTo() == To1 && Legs[y].getFrom() == From2 && Legs[y].getTo() == To2) {
+										exp3[i] /= S[x][y];
+										y = numberOfLegs;
+										x = numOfLegsOfTypeM;
+									}
+								}
+							}
+						}
 					}
 				}
 				//Check If end line
 				if (Constrain1[0] == '\n') {
-					if (Condition == "=") {
-						Model.add(exp1[i] == exp2[i]);
+					if (Condition1 == "="  ) {
+						Model.add(exp2[i] == exp3[i]);
 					}
-					else if (Condition == "<=") {
-						Model.add(exp1[i] <= exp2[i]);
+					else if (Condition1 == "<="  ) {
+						Model.add(exp2[i] <= exp3[i]);
 					}
-					else if (Condition == ">=") {
-						Model.add(exp1[i] >= exp2[i]);
+					else if (Condition1 == ">="  ) {
+						Model.add(exp2[i] >= exp3[i]);
 					}
-					else if (Condition == "<") {
-						Model.add(exp1[i] < exp2[i]);
+					else if (Condition1 == "<"  ) {
+						Model.add(exp2[i] < exp3[i]);
 					}
-					else if (Condition == ">") {
-						Model.add(exp1[i] > exp2[i]);
+					else if (Condition1 == ">"  ) {
+						Model.add(exp2[i] > exp3[i]);
 					}
 					operation = '+';
-					Condition.clear();
+					Condition1.clear();
 					i++;
 				}
 				else if (Constrain1[0] != '<' && Constrain1[0] != '=' && Constrain1[0] != '>' && Constrain1[0] + Constrain1[1] != '<=' && Constrain1[0] + Constrain1[1] != '>=')
 					operation = Constrain1[0];
 				else if (Constrain1.substr(0, 2) == "<=" || Constrain1.substr(0, 2) == ">=") {
 					operation = '+';
-					Condition = Constrain1.substr(0, 2);
+					Condition1 = Constrain1.substr(0, 2);
 					Constrain1.erase(0, 1);
 				}
 				else
 				{
 					operation = '+';
-					Condition = Constrain1[0];
+					Condition1 = Constrain1[0];
 				}
 				Constrain1.erase(0, 1);
 				break;
@@ -884,9 +1830,16 @@ public:
 			}
 		}
 #pragma endregion
+#pragma region solveModel
 		IloCplex cplex(Model);
 		cplex.exportModel("model.lp");
 		cplex.setOut(env.getNullStream());
+		if (!cplex.isExtracted(Model)) {
+			std::cerr << "Model not extracted properly" << std::endl;
+		}
+		else {
+			std::cout << "Model extracted successfully" << std::endl;
+		}		
 		if (!cplex.solve()) {
 			env.error() << "Failed to optimize the Master Problem!!!" << endl;
 			return false;
@@ -897,16 +1850,13 @@ public:
 		auto end = chrono::high_resolution_clock::now();
 		auto Elapsed = chrono::duration_cast<chrono::milliseconds>(end - start);
 		cout << "\t Elapsed Time(ms): " << Elapsed.count() << endl;
-
+		cout << "Status: " << cplex.getStatus() << endl;
 		cout << "\nThe objective value is: " << obj << endl;
 		for (int i = 0; i < numberOfPaths; i++)
 		{
 			for (int j = 0; j < numberOfFareClasses; j++) {
 				double Pval = cplex.getValue(P[i][j]);
-				if (Pval > 0)
-				{
 					cout << "\t\t\t P[" << Paths[i].getFrom() << "," << Paths[i].getTo() << "][" << FareClasses[j] << "] = " << Pval << endl;
-				}
 			}
 		}
 		for (int i = 0; i < numberofAirCrafts; i++)
@@ -914,16 +1864,28 @@ public:
 			for (int x = 0; x < numberOfLegs; x++)
 			{
 				double Xval = cplex.getValue(X[i][x]);
-				if (Xval > 0)
-				{
-					cout << "\t\t\t X[" << AirCrafts[i].getType() << "][" << Legs[x].getFrom() << "," << Legs[x].getTo() << "] = " << Xval << endl;
-				}
+
+				cout << "\t\t\t X[" << AirCrafts[i].getType() << "][" << Legs[x].getFrom() << "," << Legs[x].getTo() << "] = " << Xval << endl;
 			}
 		}
+		for (int i = 0; i < numberOfLegs; i++) {
+			double ATLval = cplex.getValue(ATL[i]);
+			cout << "\t\t\t ATL[" << Legs[i].getFrom() << "," << Legs[i].getTo() << "]="<<ATLval<< endl;
+		}
+		for (int i = 0; i < numberOfLegs; i++) {
+			double Alphaval = cplex.getValue(Alpha[i]);
+			cout << "\t\t\t Alpha[" << Legs[i].getFrom() << "," << Legs[i].getTo() << "]=" << Alphaval << endl;
+		}
+		for (int i = 0; i < numberOfLegs; i++) {
+			double Bytaval = cplex.getValue(Byta[i]);
+			cout << "\t\t\t Byta[" << Legs[i].getFrom() << "," << Legs[i].getTo() << "]=" << Bytaval << endl;
+		}
+		cplex.writeSolution("solution.lp");
+#pragma endregion
 		return true;
 	}
 	string readFromFile() {
-		ifstream file("Output.txt");
+		ifstream file("./Data/Output.txt");
 		string fileContents;
 
 		if (file.is_open()) {
@@ -938,7 +1900,7 @@ public:
 		}
 
 		return fileContents;
-	}	
+	}
 	int countLines(const string& data) {
 		int numberOfLines = 0; // Initialize to 1 to account for the last line
 
@@ -967,7 +1929,7 @@ public:
 		size_t index13 = inputString.find("]}");
 
 		// Find the minimum non-negative index among the three
-		size_t plusPos = min({ index1, index2, index3, index4,index5, index6, index7, index8, index9, index10, index11, index12, index13 }) +1;
+		size_t plusPos = min({ index1, index2, index3, index4,index5, index6, index7, index8, index9, index10, index11, index12, index13 }) + 1;
 
 		// Extract the first expression
 		string expression = inputString.substr(0, plusPos);
@@ -1017,7 +1979,7 @@ public:
 
 		return expression;
 	}
-	void extract2D1To2(const string& text, string& Aircraft, string& From, string& To) {
+	void extractX(const string& text, string& Aircraft, string& From, string& To) {
 		// Find the positions of '[' and ']' to extract the substrings
 		size_t aircraftStartPos = text.find('[') + 1;
 		size_t aircraftEndPos = text.find(']', aircraftStartPos);
@@ -1039,7 +2001,7 @@ public:
 		// Extract the second city
 		To = text.substr(city2StartPos, city2EndPos - city2StartPos);
 	}
-	void extract2D2To1(const string& inputString, string& from, string& to, string& fareClassName) {
+	void extractP(const string& inputString, string& from, string& to, string& fareClassName) {
 		// Find the positions of '[' and ',' to extract the substrings
 		size_t city1StartPos = inputString.find('[') + 1;
 		size_t comma1Pos = inputString.find(',');
@@ -1086,9 +2048,9 @@ public:
 		return operationType;
 	}
 	bool isIntegerExpression(char& expression) {
-			if (!isdigit(expression)) {
-				return false;  // If a non-digit character is found, it's not an integer expression
-			}
+		if (!isdigit(expression)) {
+			return false;  // If a non-digit character is found, it's not an integer expression
+		}
 		return true;  // All characters are digits
 	}
 	int stringToInt(const string& str) {
@@ -1133,7 +2095,7 @@ public:
 						extract1D(Expression, From, To);
 						for (int x = 0; x < numberOfPaths; x++) {
 							if (Paths[x].getFrom() == From && Paths[x].getTo() == To) {
-								Value= Paths[x].getLegCount();
+								Value = Paths[x].getLegCount();
 								break;
 							}
 						}
@@ -1161,7 +2123,7 @@ public:
 					}
 					else if (operationType == "M") {
 						string From, To, FareClassName;
-						extract2D2To1(Expression, From, To, FareClassName);
+						extractP(Expression, From, To, FareClassName);
 						for (int x = 0; x < numberOfPaths; x++) {
 							for (int y = 0; y < numberOfFareClasses; y++) {
 								if (FareClasses[y] == FareClassName && Paths[x].getFrom() == From && Paths[x].getTo() == To) {
@@ -1223,7 +2185,7 @@ public:
 					}
 					else if (operationType == "M") {
 						string From, To, FareClassName;
-						extract2D2To1(Expression, From, To, FareClassName);
+						extractP(Expression, From, To, FareClassName);
 						for (int x = 0; x < numberOfPaths; x++) {
 							for (int y = 0; y < numberOfFareClasses; y++) {
 								if (FareClasses[y] == FareClassName && Paths[x].getFrom() == From && Paths[x].getTo() == To) {
@@ -1240,10 +2202,37 @@ public:
 		}
 		return result;
 	}
+	void extractSigma(const string& text, string& From1, string& To1, string& From2, string& To2) {
+		// Find the positions of '[' and ']' to extract the substrings
+		size_t StartPos = text.find('[') + 1;
+		size_t EndPos = text.find(']', StartPos);
+		size_t commaPos1 = text.find(',', StartPos);
+		From1 = text.substr(StartPos, commaPos1 - StartPos);
+		size_t city1StartPos1 = commaPos1 + 1;
+		size_t city1EndPos1 = text.find(']', city1StartPos1);
+
+		// Extract the second city
+		To1 = text.substr(city1StartPos1, city1EndPos1 - city1StartPos1);
+
+		// Find the positions of '[' and ',' to extract the substrings
+		size_t city1StartPos2 = EndPos + 2; // Move past "][" to the next character
+		size_t commaPos2 = text.find(',', city1StartPos2);
+
+		// Extract the first city
+		From2 = text.substr(city1StartPos2, commaPos2 - city1StartPos2);
+
+		// Find the positions of ',' and ']' to extract the substrings
+		size_t city2StartPos2 = commaPos2 + 1;
+		size_t city2EndPos2 = text.find(']', city2StartPos2);
+
+		// Extract the second city
+		To2 = text.substr(city2StartPos2, city2EndPos2 - city2StartPos2);
+	}
 private:
 	typedef IloArray<IloNumVarArray> NumVar2D;
-	int numberofAirCrafts, numberOfPaths, numberOfLegs, numberOfFareClasses, numOfLegsOfTypeO, numOfLegsOfTypeM, numOfPathsWithLegO, numOfPathsWithLegM;
+	int numberofAirCrafts, numberOfPaths, numberOfLegs, numberOfFareClasses, numOfLegsOfTypeO, numOfLegsOfTypeM, numOfPathsWithLegO, numOfPathsWithLegM, numOfU, numOfV;
 	int* numPathsthatContainLeg;
+	double** S;
 	//Sets
 	Leg* Legs;
 	Path* Paths;
@@ -1254,4 +2243,6 @@ private:
 	Leg* legsOfTypeM;
 	Leg* legsOfTypeO;
 	string** PathsthatContainLeg;
+	Leg** U;
+	Leg** V;
 };

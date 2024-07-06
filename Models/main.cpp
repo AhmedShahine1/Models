@@ -9,6 +9,9 @@
 #include "Cplex.h"
 #include"ilcplex/ilocplex.h";
 #include<chrono>;
+#include <ctime>
+#include <iomanip>
+#include <sstream>
 
 using namespace std;
 //M=Mean demand,P=Passanger,Cap=capacity,F=estimated price,Caj=Cost
@@ -94,60 +97,47 @@ Leg* getLegsByType(Leg* legs, int legCount, const string& targetType, int& numOf
 }
 
 // Function to start system
-void System(string** PathsthatContainLeg, int* numPathsthatContainLeg, int numAirCrafts, int numPaths, int numLegs, int numFareClasses, int numOfLegsOfTypeO, int numOfLegsOfTypeM, int numOfPathsWithLegO, int numOfPathsWithLegM, Leg* Legs, Path* Paths, AirCraft* AirCrafts, string* FareClasses, Path* pathsWithTypeM, Path* pathsWithTypeO, Leg* legsOfTypeM, Leg* legsOfTypeO) {
+void System(string** PathsthatContainLeg, int* numPathsthatContainLeg, int numAirCrafts, int numPaths, int numLegs, int numFareClasses, int numOfLegsOfTypeO, int numOfLegsOfTypeM, int numOfPathsWithLegO, int numOfPathsWithLegM, int CountU, int CountV, Leg* Legs, Path* Paths, AirCraft* AirCrafts, string* FareClasses, Path* pathsWithTypeM, Path* pathsWithTypeO, Leg* legsOfTypeM, Leg* legsOfTypeO, Leg** U, Leg** V, double** S) {
 #pragma region System
-    system("cls");
-    while (true)
+    try
     {
-        int Decision;
-        cout << "Enter 1 to write model or 2 to solve model or 3 to clear console or 4 to Exit :";
-        cin >> Decision;
-        if (Decision == 1) {
-            try
-            {
-                Constraints constrain = Constraints(PathsthatContainLeg, numPathsthatContainLeg, numAirCrafts, numPaths, numLegs, numFareClasses, numOfLegsOfTypeO, numOfLegsOfTypeM, numOfPathsWithLegO, numOfPathsWithLegM, Legs, Paths, AirCrafts, FareClasses, pathsWithTypeM, pathsWithTypeO, legsOfTypeM, legsOfTypeO);
-                cout << endl << "Constrain1:" << endl;
-                constrain.Consrtaint_1();
-                cout << endl << "Constrain2:" << endl;
-                constrain.Consrtaint_2();
-                cout << endl << "Constrain3:" << endl;
-                constrain.Consrtaint_5();
-                cout << endl << "Constrain4:" << endl;
-                constrain.Consrtaint_6();
-                cout << endl << "Constrain5:" << endl;
-                constrain.Consrtaint_7();
-                cout << endl << "Constrain7:" << endl;
-                constrain.Constraint_8();
-                cout << endl << "Constrain7:" << endl;
-                constrain.Consrtaint_9();
-                cout << endl << "Constrain9:" << endl;
-                constrain.Consrtaint_10();
-            }
-            catch (const exception&)
-            {
-                cout << endl << "!\tError in write model\t!" << endl;
-            }
-        }
-        else if (Decision == 2)
-        {
-            try
-            {
-                Cplex cplex = Cplex(PathsthatContainLeg, numPathsthatContainLeg, numAirCrafts, numPaths, numLegs, numFareClasses, numOfLegsOfTypeO, numOfLegsOfTypeM, numOfPathsWithLegO, numOfPathsWithLegM, Legs, Paths, AirCrafts, FareClasses, pathsWithTypeM, pathsWithTypeO, legsOfTypeM, legsOfTypeO);
-                cplex.System();
+        Constraints constrain = Constraints(PathsthatContainLeg, numPathsthatContainLeg, numAirCrafts, numPaths, numLegs, numFareClasses, numOfLegsOfTypeO, numOfLegsOfTypeM, numOfPathsWithLegO, numOfPathsWithLegM, CountU, CountV, Legs, Paths, AirCrafts, FareClasses, pathsWithTypeM, pathsWithTypeO, legsOfTypeM, legsOfTypeO, U, V, S);
+        constrain.ClearData();
+        constrain.Constrain_1();
+        constrain.Constrain_2();
+        constrain.Constrain_3();
+        constrain.Constrain_4();
+        constrain.Constrain_5();
+        constrain.Constrain_6();
+        constrain.Constrain_7();
+        constrain.Constrain_8();
+        constrain.Constrain_9();
+        constrain.Constrain_10();
+        constrain.Constrain_11();
+        constrain.Constrain_12();
+        constrain.Constrain_13();
+        constrain.Constrain_14();
+        constrain.Constrain_15();
+        constrain.Constrain_16();
+        constrain.Constrain_17();
+        constrain.Constrain_18();
+        constrain.Constrain_19();
+        constrain.Constrain_20();
+    }
+    catch (const exception&)
+    {
+        cout << endl << "!\tError in write model\t!" << endl;
+    }
+    try
+    {
 
-            }
-            catch (const exception&)
-            {
-                cout << endl << "!\tError in solve model\t!" << endl;
-            }
-        }
-        else if (Decision == 3) {
-            system("cls");
-        }
-        else
-        {
-            break;
-        }
+        Cplex cplex = Cplex(PathsthatContainLeg, numPathsthatContainLeg, numAirCrafts, numPaths, numLegs, numFareClasses, numOfLegsOfTypeO, numOfLegsOfTypeM, numOfPathsWithLegO, numOfPathsWithLegM, CountU, CountV, Legs, Paths, AirCrafts, FareClasses, pathsWithTypeM, pathsWithTypeO, legsOfTypeM, legsOfTypeO, U, V, S);
+        cplex.System();
+
+    }
+    catch (const exception&)
+    {
+        cout << endl << "!\tError in solve model\t!" << endl;
     }
 #pragma endregion
 
@@ -156,435 +146,308 @@ void System(string** PathsthatContainLeg, int* numPathsthatContainLeg, int numAi
 
 int main() {
 #pragma region EnterData
-    int readData = 0;
-    cout << "Enter 1- To read data from file 2- To enter data: ";
-    cin >> readData;
-    if (readData == 1) {
-        ifstream airCraftData("AirCraft.txt");
-        if (!airCraftData.is_open()) {
-            cout << "Error opening file." << endl;
-            return 1;
-        }
-        ifstream PathData("Path.txt");
-        if (!PathData.is_open()) {
-            cout << "Error opening file." << endl;
-            return 1;
-        }
-        ifstream LegData("Leg.txt");
-        if (!LegData.is_open()) {
-            cout << "Error opening file." << endl;
-            return 1;
-        }
-        ifstream FareClassData("FareClass.txt");
-        if (!FareClassData.is_open()) {
-            cout << "Error opening file." << endl;
-            return 1;
-        }
-        ifstream MeanDemandData("MeanDemand.txt");
-        if (!MeanDemandData.is_open()) {
-            cout << "Error opening file." << endl;
-            return 1;
-        }
-        ifstream CapacityData("Capacity.txt");
-        if (!CapacityData.is_open()) {
-            cout << "Error opening file." << endl;
-            return 1;
-        }
-        ifstream CostData("cost.txt");
-        if (!CostData.is_open()) {
-            cout << "Error opening file." << endl;
-            return 1;
-        }
-        ifstream PriceData("price.txt");
-        if (!PriceData.is_open()) {
-            cout << "Error opening file." << endl;
-            return 1;
-        }
-        // Aircraft Types
-        int numOfAircraft;
-
-        // TaKe input for the number of aircraft
-        airCraftData >> numOfAircraft;
-        // Create a dynamic array of AirCraft objects
-        AirCraft* aircraftArray = new AirCraft[numOfAircraft];
-
-        // Initialize each AirCraft object in the array
-        for (int i = 0; i < numOfAircraft; ++i) {
-            string type;
-            int numberAirCraft;
-            int numNodes;
-
-            // TaKe input for each aircraft
-            airCraftData >> type;
-
-            airCraftData >> numberAirCraft;
-
-            airCraftData >> numNodes;
-
-            // Create AirCraft object and set values
-            aircraftArray[i] = AirCraft(type, numberAirCraft, numNodes);
-
-            // Input nodes
-            string* nodeValues = new string[numNodes];
-            for (int j = 0; j < numNodes; ++j) {
-                airCraftData >> nodeValues[j];
-            }
-
-            // Set nodes values
-            aircraftArray[i].setNodes(nodeValues, numNodes);
-        }
-
-        // Flight Legs
-        int numOfFlightLegs;
-
-        LegData >> numOfFlightLegs;
-        Leg* legs = new Leg[numOfFlightLegs];
-        string toLeg, fromLeg, typeLeg, toPath, fromPath;
-        for (int i = 0; i < numOfFlightLegs; i++) {
-            LegData >> fromLeg;
-            LegData >> toLeg;
-            LegData >> typeLeg;
-            legs[i] = Leg(toLeg, fromLeg, typeLeg);
-        }
-
-        // Fare Classes
-        int numOfFareClasses;
-        FareClassData >> numOfFareClasses;
-
-        string* NameFareClasses = new string[numOfFareClasses]; //indexed by (h)
-        for (int h = 0; h < numOfFareClasses; h++)
-        {
-            FareClassData >> NameFareClasses[h];
-        }
-
-        // Paths
-        int numOfPaths;
-        int numOfLegsBelongsToPath;
-        PathData >> numOfPaths;
-        Path* Paths = new Path[numOfPaths];
-        for (int i = 0; i < numOfPaths; i++) {
-            PathData >> fromPath;
-            PathData >> toPath;
-            PathData >> numOfLegsBelongsToPath;
-            Paths[i] = Path(toPath, fromPath, numOfLegsBelongsToPath, numOfFareClasses);
-            Leg* LegsToPath = new Leg[numOfLegsBelongsToPath];
-            for (int j = 0; j < numOfLegsBelongsToPath; j++) {
-                char LegsBelongsToPath;
-                PathData >> LegsBelongsToPath;
-                if (toupper(LegsBelongsToPath) == 'Y') {
-                    PathData >> fromLeg;
-                    PathData >> toLeg;
-                    PathData >> typeLeg;
-                    LegsToPath[j] = Leg(toLeg, fromLeg, typeLeg);
-                }
-                else {
-                    int idleg;
-                    PathData >> idleg;
-                    LegsToPath[j] = legs[idleg - 1];
-                }
-            }
-            Paths[i].setLegs(LegsToPath,numOfLegsBelongsToPath);
-        }
-
-        string** PathsthatContainLeg = new string * [numOfFlightLegs];
-        int* numPathsthatContainLeg = new int[numOfFlightLegs];
-
-        for (int j = 0; j < numOfFlightLegs; j++)
-        {
-            numPathsthatContainLeg[j] = 0;
-            for (int i = 0; i < numOfPaths; i++)
-            {
-                if (Paths[i].hasLeg(legs[j].getTo(), legs[j].getFrom()))
-                {
-                    numPathsthatContainLeg[j]++;
-                }
-            }
-
-            PathsthatContainLeg[j] = new string[numPathsthatContainLeg[j]];
-            for (int k = 0; k < numPathsthatContainLeg[j]; k++) {
-                for (int i = 0; i < numOfPaths; i++)
-                {
-                    if (Paths[i].hasLeg(legs[j].getTo(), legs[j].getFrom()))
-                    {
-                        PathsthatContainLeg[j][k] = Paths[i].getFrom() + " ," + Paths[i].getTo();
-                    }
-                }
-            }
-        }
-        //Parameters
-        //set Mean Demand to FareClass in Path
-        for (int i = 0; i < numOfPaths; i++) {
-            FareClass* newFareClass = new FareClass[numOfFareClasses];
-            for (int j = 0; j < numOfFareClasses; j++) {
-                int Mph = 0;
-                MeanDemandData >> Mph;
-                newFareClass[j] = FareClass(NameFareClasses[j], 0, Mph, 0);
-            }
-            Paths[i].setFareClasses(newFareClass,numOfFareClasses);
-        }
-        //set Capacity to fareClass in AirCraft
-        for (int i = 0; i < numOfAircraft; i++) {
-            FareClass* newFareClass = new FareClass[numOfFareClasses];
-            for (int j = 0; j < numOfFareClasses; j++) {
-                int Capah = 0;
-                CapacityData >> Capah;
-                Capah = Capah * aircraftArray[i].getNumberAirCraft();
-                newFareClass[j] = FareClass(NameFareClasses[j], Capah, 0, 0);
-            }
-            aircraftArray[i].setFareClasses(newFareClass,numOfFareClasses);
-        }
-        //set cost of assigning fleet type a to leg j
-        for (int i = 0; i < numOfAircraft; i++) {
-            Leg* newlegs = legs;
-            for (int j = 0; j < numOfFlightLegs; j++) {
-                int Cost = 0;
-                CostData >> Cost;
-                newlegs[j].setCost(Cost);
-            }
-            aircraftArray[i].setLegs(newlegs, numOfFlightLegs);
-        }
-        //set estimated price for fare class h on path p
-        for (int i = 0; i < numOfPaths; i++) {
-            FareClass* newFareClass = Paths[i].getFareClasses();
-            for (int j = 0; j < Paths[i].getFareClassCount(); j++) {
-                int Price = 0;
-                PriceData >> Price;
-                newFareClass[j].setPrice(Price);
-            }
-            Paths[i].setFareClasses(newFareClass,Paths[i].getFareClassCount());
-        }
-
-        int numOfPathsWithLegM = 0;
-        // Get all paths with at least one leg of type "m"
-        Path* pathsWithTypeM = getAllPathsWithLegOfTypeM(Paths, numOfPaths, numOfPathsWithLegM);
-
-        int numOfPathsWithLegO = 0;
-        // Get all paths with at least one leg of type "o"
-        Path* pathsWithTypeO = getAllPathsWithLegOfTypeO(Paths, numOfPaths, numOfPathsWithLegO);
-
-        int numOfLegsOfTypeM = 0;
-        // Get all legs with type "m"
-        Leg* legsOfTypeM = getLegsByType(legs, numOfFlightLegs, "Mandatory", numOfLegsOfTypeM);
-
-        int numOfLegsOfTypeO = 0;
-        // Get all legs with type "O"
-        Leg* legsOfTypeO = getLegsByType(legs, numOfFlightLegs, "Optional", numOfLegsOfTypeO);
-
-        System(PathsthatContainLeg, numPathsthatContainLeg, numOfAircraft, numOfPaths, numOfFlightLegs, numOfFareClasses, numOfLegsOfTypeO, numOfLegsOfTypeM, numOfPathsWithLegO, numOfPathsWithLegM, legs, Paths, aircraftArray, NameFareClasses, pathsWithTypeM, pathsWithTypeO, legsOfTypeM, legsOfTypeO);
+    ifstream airCraftData("./Data/AirCraft.txt");
+    if (!airCraftData.is_open()) {
+        cout << "Error opening file." << endl;
+        return 1;
     }
-    else
+    ifstream PathData("./Data/Path.txt");
+    if (!PathData.is_open()) {
+        cout << "Error opening file." << endl;
+        return 1;
+    }
+    ifstream LegData("./Data/Leg.txt");
+    if (!LegData.is_open()) {
+        cout << "Error opening file." << endl;
+        return 1;
+    }
+    ifstream FareClassData("./Data/FareClass.txt");
+    if (!FareClassData.is_open()) {
+        cout << "Error opening file." << endl;
+        return 1;
+    }
+    ifstream MeanDemandData("./Data/MeanDemand.txt");
+    if (!MeanDemandData.is_open()) {
+        cout << "Error opening file." << endl;
+        return 1;
+    }
+    ifstream CapacityData("./Data/Capacity.txt");
+    if (!CapacityData.is_open()) {
+        cout << "Error opening file." << endl;
+        return 1;
+    }
+    ifstream CostData("./Data/cost.txt");
+    if (!CostData.is_open()) {
+        cout << "Error opening file." << endl;
+        return 1;
+    }
+    ifstream PriceData("./Data/price.txt");
+    if (!PriceData.is_open()) {
+        cout << "Error opening file." << endl;
+        return 1;
+    }
+    ifstream TargetTime("./Data/TargetTime.txt");
+    if (!TargetTime.is_open()) {
+        cout << "Error opening file." << endl;
+        return 1;
+    }
+    ifstream EarlyTime("./Data/EarlyTime.txt");
+    if (!EarlyTime.is_open()) {
+        cout << "Error opening file." << endl;
+        return 1;
+    }
+    ifstream LateTime("./Data/LateTime.txt");
+    if (!LateTime.is_open()) {
+        cout << "Error opening file." << endl;
+        return 1;
+    }
+    ifstream EarlyPrice("./Data/EarlyPrice.txt");
+    if (!EarlyPrice.is_open()) {
+        cout << "Error opening file." << endl;
+        return 1;
+    }
+    ifstream LatePrice("./Data/LatePrice.txt");
+    if (!LatePrice.is_open()) {
+        cout << "Error opening file." << endl;
+        return 1;
+    }
+    ifstream RequiredTime("./Data/RequiredTime.txt");
+    if (!LatePrice.is_open()) {
+        cout << "Error opening file." << endl;
+        return 1;
+    }
+    ifstream UData("./Data/UData.txt");
+    if (!LatePrice.is_open()) {
+        cout << "Error opening file." << endl;
+        return 1;
+    }
+    ifstream VData("./Data/VData.txt");
+    if (!LatePrice.is_open()) {
+        cout << "Error opening file." << endl;
+        return 1;
+    }
+    // Aircraft Types
+    int numOfAircraft;
+
+    // TaKe input for the number of aircraft
+    airCraftData >> numOfAircraft;
+    // Create a dynamic array of AirCraft objects
+    AirCraft* aircraftArray = new AirCraft[numOfAircraft];
+
+    // Initialize each AirCraft object in the array
+    for (int i = 0; i < numOfAircraft; ++i) {
+        string type;
+        int numberAirCraft;
+        int numNodes;
+
+        // TaKe input for each aircraft
+        airCraftData >> type;
+
+        airCraftData >> numberAirCraft;
+
+        airCraftData >> numNodes;
+
+        // Create AirCraft object and set values
+        aircraftArray[i] = AirCraft(type, numberAirCraft, numNodes);
+
+        // Input nodes
+        string* nodeValues = new string[numNodes];
+        for (int j = 0; j < numNodes; ++j) {
+            airCraftData >> nodeValues[j];
+        }
+
+        // Set nodes values
+        aircraftArray[i].setNodes(nodeValues, numNodes);
+    }
+
+    // Flight Legs
+    int numOfFlightLegs;
+
+    LegData >> numOfFlightLegs;
+    Leg* legs = new Leg[numOfFlightLegs];
+    string toLeg, fromLeg, typeLeg, toPath, fromPath;
+    tm TL, TE, TT;
+    string TimeL, TimeE, TimeT;
+    int PE, PL;
+    for (int i = 0; i < numOfFlightLegs; i++) {
+        LegData >> fromLeg;
+        LegData >> toLeg;
+        LegData >> typeLeg;
+        EarlyTime >> TimeE;
+        TargetTime >> TimeT;
+        LateTime >> TimeL;
+        LatePrice >> PL;
+        EarlyPrice >> PE;
+        istringstream ss(TimeE);
+        ss >> get_time(&TE, "%H:%M");
+        istringstream sT(TimeT);
+        sT >> get_time(&TT, "%H:%M");
+        istringstream sL(TimeL);
+        sL >> get_time(&TL, "%H:%M");
+        legs[i] = Leg(toLeg, fromLeg, typeLeg);
+        legs[i].setTE(TE);
+        legs[i].setTT(TT);
+        legs[i].setTL(TL);
+        legs[i].setPE(PE);
+        legs[i].setPL(PL);
+    }
+
+    // Fare Classes
+    int numOfFareClasses;
+    FareClassData >> numOfFareClasses;
+
+    string* NameFareClasses = new string[numOfFareClasses]; //indexed by (h)
+    for (int h = 0; h < numOfFareClasses; h++)
     {
-        // Aircraft Types
-        int numOfAircraft;
+        FareClassData >> NameFareClasses[h];
+    }
 
-        // TaKe input for the number of aircraft
-        cout << "Enter the number of Aircraft Type: ";
-        cin >> numOfAircraft;
-
-        // Create a dynamic array of AirCraft objects
-        AirCraft* aircraftArray = new AirCraft[numOfAircraft];
-
-        // Initialize each AirCraft object in the array
-        for (int i = 0; i < numOfAircraft; ++i) {
-            string type;
-            int numberAirCraft;
-            int numNodes;
-
-            // TaKe input for each aircraft
-            cout << "Aircraft [" << i + 1 << "]\nEnter Aircraft Type : ";
-            cin >> type;
-
-            cout << "Enter Number of All Aircraft: ";
-            cin >> numberAirCraft;
-
-            cout << "Enter Number of Nodes: ";
-            cin >> numNodes;
-
-            // Create AirCraft object and set values
-            aircraftArray[i] = AirCraft(type, numberAirCraft, numNodes);
-
-            // Input nodes
-            string* nodeValues = new string[numNodes];
-            for (int j = 0; j < numNodes; ++j) {
-                cout << "Enter Node " << j + 1 << ": ";
-                cin >> nodeValues[j];
+    // Paths
+    int numOfPaths;
+    int numOfLegsBelongsToPath;
+    PathData >> numOfPaths;
+    Path* Paths = new Path[numOfPaths];
+    for (int i = 0; i < numOfPaths; i++) {
+        PathData >> fromPath;
+        PathData >> toPath;
+        PathData >> numOfLegsBelongsToPath;
+        Paths[i] = Path(toPath, fromPath, numOfLegsBelongsToPath, numOfFareClasses);
+        Leg* LegsToPath = new Leg[numOfLegsBelongsToPath];
+        for (int j = 0; j < numOfLegsBelongsToPath; j++) {
+            char LegsBelongsToPath;
+            PathData >> LegsBelongsToPath;
+            if (toupper(LegsBelongsToPath) == 'Y') {
+                PathData >> fromLeg;
+                PathData >> toLeg;
+                PathData >> typeLeg;
+                LegsToPath[j] = Leg(toLeg, fromLeg, typeLeg);
             }
-
-            // Set nodes values
-            aircraftArray[i].setNodes(nodeValues, numNodes);
-
-        }
-
-        // Flight Legs
-        int numOfFlightLegs;
-
-        cout << "Input Flight Legs Number : ";
-        cin >> numOfFlightLegs;
-        cout << endl;
-        Leg* legs = new Leg[numOfFlightLegs];
-        string toLeg, fromLeg, typeLeg, toPath, fromPath;
-        for (int i = 0; i < numOfFlightLegs; i++) {
-            cout << "Input Flight Leg [" << i + 1 << "] From : ";
-            cin >> fromLeg;
-            cout << endl << "Input Flight Leg [" << i + 1 << "] to: ";
-            cin >> toLeg;
-            cout << endl << "Input Type Of Legs(Mandatory or Optional) [" << i + 1 << "] : ";
-            cin >> typeLeg;
-            cout << endl;
-            legs[i] = Leg(toLeg, fromLeg, typeLeg);
-        }
-
-        // Fare Classes
-        int numOfFareClasses;
-        cout << "Input Fare Class Number : ";
-        cin >> numOfFareClasses;
-        cout << endl;
-
-        string* NameFareClasses = new string[numOfFareClasses]; //indexed by (h)
-        for (int h = 0; h < numOfFareClasses; h++)
-        {
-            cout << "Input Fare Class [" << h + 1 << "] Name : ";
-            cin >> NameFareClasses[h];
-            cout << endl;
-        }
-
-        // Paths
-        int numOfPaths;
-        int numOfLegsBelongsToPath;
-        cout << "Input All Paths Number : ";
-        cin >> numOfPaths;
-        cout << endl;
-        Path* Paths = new Path[numOfPaths];
-        for (int i = 0; i < numOfPaths; i++) {
-            cout << "Input Path [" << i + 1 << "] From : ";
-            cin >> fromPath;
-            cout << endl << "Input Path [" << i + 1 << "] to: ";
-            cin >> toPath;
-            cout << "Input Num Of Legs Belongs To Path [" << i << "] : ";
-            cin >> numOfLegsBelongsToPath;
-            cout << endl;
-            Paths[i] = Path(toPath, fromPath, numOfLegsBelongsToPath, numOfFareClasses);
-            cout << "Legs Belongs To Path [" << i << "] : " << endl;
-            Leg* LegsToPath = new Leg[numOfLegsBelongsToPath];
-            for (int j = 0; j < numOfLegsBelongsToPath; j++) {
-                cout << "Available Legs:";
-                displayLegsDetails(legs, numOfFlightLegs);
-                char LegsBelongsToPath;
-                cout << "Enter (Y) When do add new Legs or (N) When use old Legs: ";
-                cin >> LegsBelongsToPath;
-                if (toupper(LegsBelongsToPath) == 'Y') {
-                    cout << "Input Flight Leg From : ";
-                    cin >> fromLeg;
-                    cout << endl << "Input Flight Leg to: ";
-                    cin >> toLeg;
-                    cout << endl << "Input Type Of Legs(Mandatory or Optional) : ";
-                    cin >> typeLeg;
-                    cout << endl;
-                    LegsToPath[j] = Leg(toLeg, fromLeg, typeLeg);
-                }
-                else {
-                    int idleg;
-                    cout << "Enter Id Leg to add to this path:";
-                    cin >> idleg;
-                    cout << endl;
-                    LegsToPath[j] = legs[idleg - 1];
-                }
+            else {
+                int idleg;
+                PathData >> idleg;
+                LegsToPath[j] = legs[idleg - 1];
             }
-            Paths[i].setLegs(LegsToPath,numOfLegsBelongsToPath);
+        }
+        Paths[i].setLegs(LegsToPath, numOfLegsBelongsToPath);
+    }
+
+    string** PathsthatContainLeg = new string * [numOfFlightLegs];
+    int* numPathsthatContainLeg = new int[numOfFlightLegs];
+
+    for (int j = 0; j < numOfFlightLegs; j++)
+    {
+        numPathsthatContainLeg[j] = 0;
+        for (int i = 0; i < numOfPaths; i++)
+        {
+            if (Paths[i].hasLeg(legs[j].getTo(), legs[j].getFrom()))
+            {
+                numPathsthatContainLeg[j]++;
+            }
         }
 
-        string** PathsthatContainLeg = new string * [numOfFlightLegs];
-        int* numPathsthatContainLeg = new int[numOfFlightLegs];
-
-        for (int j = 0; j < numOfFlightLegs; j++)
-        {
-            numPathsthatContainLeg[j] = 0;
+        PathsthatContainLeg[j] = new string[numPathsthatContainLeg[j]];
+        for (int k = 0; k < numPathsthatContainLeg[j]; k++) {
             for (int i = 0; i < numOfPaths; i++)
             {
                 if (Paths[i].hasLeg(legs[j].getTo(), legs[j].getFrom()))
                 {
-                    numPathsthatContainLeg[j]++;
-                }
-            }
-
-            PathsthatContainLeg[j] = new string[numPathsthatContainLeg[j]];
-            for (int k = 0; k < numPathsthatContainLeg[j]; k++) {
-                for (int i = 0; i < numOfPaths; i++)
-                {
-                    if (Paths[i].hasLeg(legs[j].getTo(), legs[j].getFrom()))
-                    {
-                        PathsthatContainLeg[j][k] = Paths[i].getFrom() + " ," + Paths[i].getTo();
-                        cout << PathsthatContainLeg[j][k];
-                    }
+                    PathsthatContainLeg[j][k] = Paths[i].getFrom() + " ," + Paths[i].getTo();
                 }
             }
         }
-        //Parameters
-        //set Mean Demand to FareClass in Path
-        for (int i = 0; i < numOfPaths; i++) {
-            cout << "Enter Mean demand to Path:" << Paths[i].getFrom() << "," << Paths[i].getTo() << " When Fare Class:" << endl;
-            FareClass* newFareClass = new FareClass[numOfFareClasses];
-            for (int j = 0; j < numOfFareClasses; j++) {
-                int Mph = 0;
-                cout << "fare Class:" << NameFareClasses[j] << endl << "Enter Mean demand :";
-                cin >> Mph;
-                newFareClass[j] = FareClass(NameFareClasses[j], 0, Mph, 0);
-            }
-            Paths[i].setFareClasses(newFareClass, numOfFareClasses);
+    }
+    //Parameters
+    //set Mean Demand to FareClass in Path
+    for (int i = 0; i < numOfPaths; i++) {
+        FareClass* newFareClass = new FareClass[numOfFareClasses];
+        for (int j = 0; j < numOfFareClasses; j++) {
+            int Mph = 0;
+            MeanDemandData >> Mph;
+            newFareClass[j] = FareClass(NameFareClasses[j], 0, Mph, 0);
         }
-        //set Capacity to fareClass in AirCraft
-        for (int i = 0; i < numOfAircraft; i++) {
-            FareClass* newFareClass = new FareClass[numOfFareClasses];
-            cout << "Enter Capacity to AirCraft:" << aircraftArray[i].getType() << " When Fare Class:" << endl;
-            for (int j = 0; j < numOfFareClasses; j++) {
-                int Capah = 0;
-                cout << "fare Class:" << NameFareClasses[j] << endl << "Enter Capacity :";
-                cin >> Capah;
-                Capah = Capah * aircraftArray[i].getNumberAirCraft();
-                newFareClass[j] = FareClass(NameFareClasses[j], Capah, 0, 0);
-            }
-            aircraftArray[i].setFareClasses(newFareClass, numOfFareClasses);
+        Paths[i].setFareClasses(newFareClass, numOfFareClasses);
+    }
+    //set Capacity to fareClass in AirCraft
+    for (int i = 0; i < numOfAircraft; i++) {
+        FareClass* newFareClass = new FareClass[numOfFareClasses];
+        for (int j = 0; j < numOfFareClasses; j++) {
+            int Capah = 0;
+            CapacityData >> Capah;
+            Capah = Capah * aircraftArray[i].getNumberAirCraft();
+            newFareClass[j] = FareClass(NameFareClasses[j], Capah, 0, 0);
         }
-        //set cost of assigning fleet type a to leg j
-        for (int i = 0; i < numOfAircraft; i++) {
-            Leg* newlegs = legs;
-            for (int j = 0; j < numOfFlightLegs; j++) {
-                int Cost = 0;
-                cout << "Input cost of assigning fleet type [" << aircraftArray[i].getType() << "] to leg [" << legs[j].getFrom() << "," << legs[j].getTo() << "] : ";
-                cin >> Cost;
-                newlegs[j].setCost(Cost);
-            }
-            aircraftArray[i].setLegs(newlegs, numOfFlightLegs);
+        aircraftArray[i].setFareClasses(newFareClass, numOfFareClasses);
+    }
+    //set cost of assigning fleet type a to leg j
+    for (int i = 0; i < numOfAircraft; i++) {
+        Leg* newlegs = legs;
+        for (int j = 0; j < numOfFlightLegs; j++) {
+            int Cost = 0;
+            CostData >> Cost;
+            newlegs[j].setCost(Cost);
         }
-        //set estimated price for fare class h on path p
-        for (int i = 0; i < numOfPaths; i++) {
-            FareClass* newFareClass = Paths[i].getFareClasses();
-            for (int j = 0; j < Paths[i].getFareClassCount(); j++) {
-                int Price = 0;
-                cout << "Input estimated price for fare class [" << NameFareClasses[j] << "] on path [" << Paths[i].getFrom() << "," << Paths[i].getTo() << "] : ";
-                cin >> Price;
-                newFareClass[j].setPrice(Price);
-            }
-            Paths[i].setFareClasses(newFareClass, Paths[i].getFareClassCount());
+        aircraftArray[i].setLegs(newlegs, numOfFlightLegs);
+    }
+    //set estimated price for fare class h on path p
+    for (int i = 0; i < numOfPaths; i++) {
+        FareClass* newFareClass = Paths[i].getFareClasses();
+        for (int j = 0; j < Paths[i].getFareClassCount(); j++) {
+            int Price = 0;
+            PriceData >> Price;
+            newFareClass[j].setPrice(Price);
         }
+        Paths[i].setFareClasses(newFareClass, Paths[i].getFareClassCount());
+    }
 
-        int numOfPathsWithLegM = 0;
-        // Get all paths with at least one leg of type "m"
-        Path* pathsWithTypeM = getAllPathsWithLegOfTypeM(Paths, numOfPaths, numOfPathsWithLegM);
+    int numOfPathsWithLegM = 0;
+    // Get all paths with at least one leg of type "m"
+    Path* pathsWithTypeM = getAllPathsWithLegOfTypeM(Paths, numOfPaths, numOfPathsWithLegM);
 
-        int numOfPathsWithLegO = 0;
-        // Get all paths with at least one leg of type "o"
-        Path* pathsWithTypeO = getAllPathsWithLegOfTypeO(Paths, numOfPaths, numOfPathsWithLegO);
+    int numOfPathsWithLegO = 0;
+    // Get all paths with at least one leg of type "o"
+    Path* pathsWithTypeO = getAllPathsWithLegOfTypeO(Paths, numOfPaths, numOfPathsWithLegO);
 
-        int numOfLegsOfTypeM = 0;
-        // Get all legs with type "m"
-        Leg* legsOfTypeM = getLegsByType(legs, numOfFlightLegs, "Mandatory", numOfLegsOfTypeM);
+    int numOfLegsOfTypeM = 0;
+    // Get all legs with type "m"
+    Leg* legsOfTypeM = getLegsByType(legs, numOfFlightLegs, "Mandatory", numOfLegsOfTypeM);
 
-        int numOfLegsOfTypeO = 0;
-        // Get all legs with type "O"
-        Leg* legsOfTypeO = getLegsByType(legs, numOfFlightLegs, "Optional", numOfLegsOfTypeO);
-        System(PathsthatContainLeg, numPathsthatContainLeg, numOfAircraft, numOfPaths, numOfFlightLegs, numOfFareClasses, numOfLegsOfTypeO, numOfLegsOfTypeM, numOfPathsWithLegO, numOfPathsWithLegM, legs, Paths, aircraftArray, NameFareClasses, pathsWithTypeM, pathsWithTypeO, legsOfTypeM, legsOfTypeO);
+    int numOfLegsOfTypeO = 0;
+    // Get all legs with type "O"
+    Leg* legsOfTypeO = getLegsByType(legs, numOfFlightLegs, "Optional", numOfLegsOfTypeO);
+
+    int countV ;
+    VData >> countV;
+    Leg** V = new Leg*[countV];
+    for (int i = 0; i < countV; i++) {
+        int index1, index2;
+        VData >> index1 >> index2;
+            V[i] = new Leg[2];
+            V[i][0] = legs[index1];
+            V[i][1] = legs[index2];
 
     }
+    int countU ;
+    UData >> countU;
+    Leg** U = new Leg * [countU];
+    for (int i = 0; i < countU; i++) {
+        int index1, index2;
+        UData >> index1 >> index2;
+        U[i] = new Leg[2];
+        U[i][0] = legs[index1];
+        U[i][1] = legs[index2];
+    }
+    double** S = new double*[numOfFlightLegs];
+    for (int i = 0; i < numOfFlightLegs; i++) {
+        S[i] = new double[numOfFlightLegs];
+        for (int j = 0; j < numOfFlightLegs; j++) {
+            RequiredTime >> S[i][j];
+        }
+    }
+    System(PathsthatContainLeg, numPathsthatContainLeg, numOfAircraft, numOfPaths, numOfFlightLegs, numOfFareClasses, numOfLegsOfTypeO, numOfLegsOfTypeM, numOfPathsWithLegO, numOfPathsWithLegM, countU, countV, legs, Paths, aircraftArray, NameFareClasses, pathsWithTypeM, pathsWithTypeO, legsOfTypeM, legsOfTypeO, U, V, S);
+    return 0;
 #pragma endregion
+/*[[0.25, 0.25],
+[0.25, 0.25],
+[0.25, 0.25]]
+*/ 
 }

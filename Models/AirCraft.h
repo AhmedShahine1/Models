@@ -108,7 +108,12 @@ public:
 
         cout << "Fare Classes:" << endl;
         for (int i = 0; i < fareClassCount; ++i) {
-            //fareClasses[i].displayDetailToAirCraft();
+            fareClasses[i].displayDetailToAirCraft();
+        }
+        cout << endl;
+        cout << "Legs:" << endl;
+        for (int i = 0; i < numofLegs; i++) {
+            legs[i].display();
         }
     }
 

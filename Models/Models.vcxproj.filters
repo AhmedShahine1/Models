@@ -40,17 +40,26 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <Text Include="AirCraft.txt" />
-    <Text Include="FareClass.txt" />
-    <Text Include="Leg.txt" />
-    <Text Include="Path.txt" />
-    <Text Include="MeanDemand.txt" />
-    <Text Include="Capacity.txt" />
-    <Text Include="cost.txt" />
-    <Text Include="price.txt" />
-    <Text Include="Output.txt" />
+    <Text Include="Data\AirCraft.txt" />
+    <Text Include="Data\FareClass.txt" />
+    <Text Include="Data\Leg.txt" />
+    <Text Include="Data\Path.txt" />
+    <Text Include="Data\MeanDemand.txt" />
+    <Text Include="Data\Capacity.txt" />
+    <Text Include="Data\cost.txt" />
+    <Text Include="Data\price.txt" />
+    <Text Include="Data\Output.txt" />
+    <Text Include="Data\TargetTime.txt" />
+    <Text Include="Data\EarlyTime.txt" />
+    <Text Include="Data\LateTime.txt" />
+    <Text Include="Data\EarlyPrice.txt" />
+    <Text Include="Data\LatePrice.txt" />
+    <Text Include="Data\RequiredTime.txt" />
+    <Text Include="Data\UData.txt" />
+    <Text Include="Data\VData.txt" />
   </ItemGroup>
   <ItemGroup>
     <None Include="model.lp" />
+    <None Include="solution.lp" />
   </ItemGroup>
 </Project>
