@@ -92,38 +92,38 @@ public:
 #pragma endregion
 #pragma region Constraints
 		//Constrain1
-		string Constrain1 = readDataFromFile();
-		int countConstrain1 = countLines(Constrain1);
+		string Constrain = readDataFromFile();
+		int countConstrain = countLines(Constrain);
 		char operation = '+';
 		int i = 0;
 		string Condition1;
-		IloExpr* exp2 = new IloExpr[countConstrain1];
-		IloExpr* exp3 = new IloExpr[countConstrain1];
+		IloExpr* exp2 = new IloExpr[countConstrain];
+		IloExpr* exp3 = new IloExpr[countConstrain];
 		// Initialize each IloExpr in the array
-		for (int i = 0; i < countConstrain1; ++i) {
+		for (int i = 0; i < countConstrain; ++i) {
 			exp2[i] = IloExpr(env);
 			exp3[i] = IloExpr(env);
 		}
-		while (i < countConstrain1) {
-			string MinMax = Constrain1.substr(0, 3);
+		while (i < countConstrain) {
+			string MinMax = Constrain.substr(0, 3);
 			switch (operation)
 			{
 			case '+':
 			{
 				if (Condition1.empty() ) {
-					if (isInteger(Constrain1[0])) {
-						string number = extractNumber(Constrain1);
+					if (isInteger(Constrain[0])) {
+						string number = extractNumber(Constrain);
 						int value = stringToInt(number);
 						exp2[i] += value;
 					}
 					else if (MinMax == "Min" || MinMax == "Max") {
-						Constrain1.erase(0, 4);
-						exp2[i] += MinMaxValue(Constrain1.substr(0, Constrain1.find('}') + 1), MinMax);
-						Constrain1.erase(0, Constrain1.find_first_of('}') + 1);
+						Constrain.erase(0, 4);
+						exp2[i] += MinMaxValue(Constrain.substr(0, Constrain.find('}') + 1), MinMax);
+						Constrain.erase(0, Constrain.find_first_of('}') + 1);
 					}
-					else if (Constrain1[0] == '|') {
-						Constrain1.erase(0, 1);
-						string Expression = extractExpression(Constrain1);
+					else if (Constrain[0] == '|') {
+						Constrain.erase(0, 1);
+						string Expression = extractExpression(Constrain);
 						string operationType = extractOperationType(Expression);
 						if (operationType == "L") {
 							string From, To;
@@ -139,7 +139,7 @@ public:
 					}
 					else {
 
-						string Expression = extractExpression(Constrain1);
+						string Expression = extractExpression(Constrain);
 						string operationType = extractOperationType(Expression);
 						if (operationType == "Cap")
 						{
@@ -236,9 +236,9 @@ public:
 								if (Legs[x].getFrom() == From && Legs[x].getTo() == To)
 									val = Legs[x].getTE();
 							}
-							if (Constrain1[0] == '*') {
-								Constrain1.erase(0, 1);
-								Expression = extractExpression(Constrain1);
+							if (Constrain[0] == '*') {
+								Constrain.erase(0, 1);
+								Expression = extractExpression(Constrain);
 								string From1, To1, From2, To2;
 								extractSigma_S(Expression, From1, To1, From2, To2);
 								for (int x = 0; x < numberOfLegs; x++) {
@@ -264,9 +264,9 @@ public:
 								if (Legs[x].getFrom() == From && Legs[x].getTo() == To)
 									val = Legs[x].getTT();
 							}
-							if (Constrain1[0] == '*') {
-								Constrain1.erase(0, 1);
-								Expression = extractExpression(Constrain1);
+							if (Constrain[0] == '*') {
+								Constrain.erase(0, 1);
+								Expression = extractExpression(Constrain);
 								string From1, To1, From2, To2;
 								extractSigma_S(Expression, From1, To1, From2, To2);
 								for (int x = 0; x < numberOfLegs; x++) {
@@ -292,9 +292,9 @@ public:
 								if (Legs[x].getFrom() == From && Legs[x].getTo() == To)
 									val = Legs[x].getTL();
 							}
-							if (Constrain1[0] == '*') {
-								Constrain1.erase(0, 1);
-								Expression = extractExpression(Constrain1);
+							if (Constrain[0] == '*') {
+								Constrain.erase(0, 1);
+								Expression = extractExpression(Constrain);
 								string From1, To1, From2, To2;
 								extractSigma_S(Expression, From1, To1, From2, To2);
 								for (int x = 0; x < numberOfLegs; x++) {
@@ -362,9 +362,9 @@ public:
 									}
 								}
 							}
-							if (Constrain1[0] == '*') {
-								Constrain1.erase(0, 1);
-								Expression = extractExpression(Constrain1);
+							if (Constrain[0] == '*') {
+								Constrain.erase(0, 1);
+								Expression = extractExpression(Constrain);
 								From1, To1, From2, To2;
 								extractSigma_S(Expression, From1, To1, From2, To2);
 								for (int x = 0; x < numberOfLegs; x++) {
@@ -391,19 +391,19 @@ public:
 				}
 				else
 				{
-					if (isInteger(Constrain1[0])) {
-						string number = extractNumber(Constrain1);
+					if (isInteger(Constrain[0])) {
+						string number = extractNumber(Constrain);
 						int value = stringToInt(number);
 						exp3[i] += value;
 					}
 					else if (MinMax == "Min" || MinMax == "Max") {
-						Constrain1.erase(0, 4);
-						exp3[i] += MinMaxValue(Constrain1.substr(0, Constrain1.find('}') + 1), MinMax);
-						Constrain1.erase(0, Constrain1.find_first_of('}') + 1);
+						Constrain.erase(0, 4);
+						exp3[i] += MinMaxValue(Constrain.substr(0, Constrain.find('}') + 1), MinMax);
+						Constrain.erase(0, Constrain.find_first_of('}') + 1);
 					}
-					else if (Constrain1[0] == '|') {
-						Constrain1.erase(0, 1);
-						string Expression = extractExpression(Constrain1);
+					else if (Constrain[0] == '|') {
+						Constrain.erase(0, 1);
+						string Expression = extractExpression(Constrain);
 						string operationType = extractOperationType(Expression);
 						if (operationType == "L") {
 							string From, To;
@@ -411,14 +411,14 @@ public:
 							for (int x = 0; x < numberOfPaths; x++) {
 								if (Paths[x].getFrom() == From && Paths[x].getTo() == To) {
 									exp3[i] += Paths[x].getLegCount();
-									Constrain1.erase(0, 1);
+									Constrain.erase(0, 1);
 									break;
 								}
 							}
 						}
 					}
 					else {
-						string Expression = extractExpression(Constrain1);
+						string Expression = extractExpression(Constrain);
 						string operationType = extractOperationType(Expression);
 						if (operationType == "Cap")
 						{
@@ -515,9 +515,9 @@ public:
 								if (Legs[x].getFrom() == From && Legs[x].getTo() == To)
 									val = Legs[x].getTE();
 							}
-							if (Constrain1[0] == '*') {
-								Constrain1.erase(0, 1);
-								Expression = extractExpression(Constrain1);
+							if (Constrain[0] == '*') {
+								Constrain.erase(0, 1);
+								Expression = extractExpression(Constrain);
 								string From1, To1, From2, To2;
 								extractSigma_S(Expression, From1, To1, From2, To2);
 								for (int x = 0; x < numberOfLegs; x++) {
@@ -543,9 +543,9 @@ public:
 								if (Legs[x].getFrom() == From && Legs[x].getTo() == To)
 									val = Legs[x].getTT();
 							}
-							if (Constrain1[0] == '*') {
-								Constrain1.erase(0, 1);
-								Expression = extractExpression(Constrain1);
+							if (Constrain[0] == '*') {
+								Constrain.erase(0, 1);
+								Expression = extractExpression(Constrain);
 								string From1, To1, From2, To2;
 								extractSigma_S(Expression, From1, To1, From2, To2);
 								for (int x = 0; x < numberOfLegs; x++) {
@@ -571,9 +571,9 @@ public:
 								if (Legs[x].getFrom() == From && Legs[x].getTo() == To)
 									val= Legs[x].getTL();
 							}
-							if (Constrain1[0] == '*') {
-								Constrain1.erase(0, 1);
-								Expression = extractExpression(Constrain1);
+							if (Constrain[0] == '*') {
+								Constrain.erase(0, 1);
+								Expression = extractExpression(Constrain);
 								string From1, To1, From2, To2;
 								extractSigma_S(Expression, From1, To1, From2, To2);
 								for (int x = 0; x < numberOfLegs; x++) {
@@ -641,9 +641,9 @@ public:
 									}
 								}
 							}
-							if (Constrain1[0] == '*') {
-								Constrain1.erase(0, 1);
-								Expression = extractExpression(Constrain1);
+							if (Constrain[0] == '*') {
+								Constrain.erase(0, 1);
+								Expression = extractExpression(Constrain);
 								From1, To1, From2, To2;
 								extractSigma_S(Expression, From1, To1, From2, To2);
 								for (int x = 0; x < numberOfLegs; x++) {
@@ -668,57 +668,25 @@ public:
 					}
 				}
 				//Check If end line
-				if (Constrain1[0] == '\n') {
-					if (Condition1 == "="  ) {
-						Model.add(exp2[i] == exp3[i]);
-					}
-					else if (Condition1 == "<="  ) {
-						Model.add(exp2[i] <= exp3[i]);
-					}
-					else if (Condition1 == ">="  ) {
-						Model.add(exp2[i] >= exp3[i]);
-					}
-					else if (Condition1 == "<"  ) {
-						Model.add(exp2[i] < exp3[i]);
-					}
-					else if (Condition1 == ">"  ) {
-						Model.add(exp2[i] > exp3[i]);
-					}
-					operation = '+';
-					Condition1.clear();
-					i++;
-				}
-				else if (Constrain1[0] != '<' && Constrain1[0] != '=' && Constrain1[0] != '>' && Constrain1[0] + Constrain1[1] != '<=' && Constrain1[0] + Constrain1[1] != '>=')
-					operation = Constrain1[0];
-				else if (Constrain1.substr(0, 2) == "<=" || Constrain1.substr(0, 2) == ">=") {
-					operation = '+';
-					Condition1 = Constrain1.substr(0, 2);
-					Constrain1.erase(0, 1);
-				}
-				else
-				{
-					operation = '+';
-					Condition1 = Constrain1[0];
-				}
-				Constrain1.erase(0, 1);
+				processConstraintsToModel(Constrain, Model, exp2, exp3, operation, countConstrain, Condition1, i);
 				break;
 			}
 			case '-':
 			{
 				if (Condition1.empty() ) {
-					if (isInteger(Constrain1[0])) {
-						string number = extractNumber(Constrain1);
+					if (isInteger(Constrain[0])) {
+						string number = extractNumber(Constrain);
 						int value = stringToInt(number);
 						exp2[i] -= value;
 					}
 					else if (MinMax == "Min" || MinMax == "Max") {
-						Constrain1.erase(0, 4);
-						exp2[i] -= MinMaxValue(Constrain1.substr(0, Constrain1.find('}') + 1), MinMax);
-						Constrain1.erase(0, Constrain1.find_first_of('}') + 1);
+						Constrain.erase(0, 4);
+						exp2[i] -= MinMaxValue(Constrain.substr(0, Constrain.find('}') + 1), MinMax);
+						Constrain.erase(0, Constrain.find_first_of('}') + 1);
 					}
-					else if (Constrain1[0] == '|') {
-						Constrain1.erase(0, 1);
-						string Expression = extractExpression(Constrain1);
+					else if (Constrain[0] == '|') {
+						Constrain.erase(0, 1);
+						string Expression = extractExpression(Constrain);
 						string operationType = extractOperationType(Expression);
 						if (operationType == "L") {
 							string From, To;
@@ -734,7 +702,7 @@ public:
 					}
 					else {
 
-						string Expression = extractExpression(Constrain1);
+						string Expression = extractExpression(Constrain);
 						string operationType = extractOperationType(Expression);
 						if (operationType == "Cap")
 						{
@@ -831,9 +799,9 @@ public:
 								if (Legs[x].getFrom() == From && Legs[x].getTo() == To)
 									val = Legs[x].getTE();
 							}
-							if (Constrain1[0] != '\n') {
-								Constrain1.erase(0, 1);
-								Expression = extractExpression(Constrain1);
+							if (Constrain[0] != '\n') {
+								Constrain.erase(0, 1);
+								Expression = extractExpression(Constrain);
 								string From1, To1, From2, To2;
 								extractSigma_S(Expression, From1, To1, From2, To2);
 								for (int x = 0; x < numberOfLegs; x++) {
@@ -859,9 +827,9 @@ public:
 								if (Legs[x].getFrom() == From && Legs[x].getTo() == To)
 									val = Legs[x].getTT();
 							}
-							if (Constrain1[0] != '\n') {
-								Constrain1.erase(0, 1);
-								Expression = extractExpression(Constrain1);
+							if (Constrain[0] != '\n') {
+								Constrain.erase(0, 1);
+								Expression = extractExpression(Constrain);
 								string From1, To1, From2, To2;
 								extractSigma_S(Expression, From1, To1, From2, To2);
 								for (int x = 0; x < numberOfLegs; x++) {
@@ -887,9 +855,9 @@ public:
 								if (Legs[x].getFrom() == From && Legs[x].getTo() == To)
 									val = Legs[x].getTL();
 							}
-							if (Constrain1[0] != '\n') {
-								Constrain1.erase(0, 1);
-								Expression = extractExpression(Constrain1);
+							if (Constrain[0] != '\n') {
+								Constrain.erase(0, 1);
+								Expression = extractExpression(Constrain);
 								string From1, To1, From2, To2;
 								extractSigma_S(Expression, From1, To1, From2, To2);
 								for (int x = 0; x < numberOfLegs; x++) {
@@ -957,9 +925,9 @@ public:
 									}
 								}
 							}
-							if (Constrain1[0] != '\n') {
-								Constrain1.erase(0, 1);
-								Expression = extractExpression(Constrain1);
+							if (Constrain[0] != '\n') {
+								Constrain.erase(0, 1);
+								Expression = extractExpression(Constrain);
 								From1, To1, From2, To2;
 								extractSigma_S(Expression, From1, To1, From2, To2);
 								for (int x = 0; x < numberOfLegs; x++) {
@@ -980,19 +948,19 @@ public:
 				}
 				else
 				{
-					if (isInteger(Constrain1[0])) {
-						string number = extractNumber(Constrain1);
+					if (isInteger(Constrain[0])) {
+						string number = extractNumber(Constrain);
 						int value = stringToInt(number);
 						exp3[i] -= value;
 					}
 					else if (MinMax == "Min" || MinMax == "Max") {
-						Constrain1.erase(0, 4);
-						exp3[i] -= MinMaxValue(Constrain1.substr(0, Constrain1.find('}') + 1), MinMax);
-						Constrain1.erase(0, Constrain1.find_first_of('}') + 1);
+						Constrain.erase(0, 4);
+						exp3[i] -= MinMaxValue(Constrain.substr(0, Constrain.find('}') + 1), MinMax);
+						Constrain.erase(0, Constrain.find_first_of('}') + 1);
 					}
-					else if (Constrain1[0] == '|') {
-						Constrain1.erase(0, 1);
-						string Expression = extractExpression(Constrain1);
+					else if (Constrain[0] == '|') {
+						Constrain.erase(0, 1);
+						string Expression = extractExpression(Constrain);
 						string operationType = extractOperationType(Expression);
 						if (operationType == "L") {
 							string From, To;
@@ -1000,14 +968,14 @@ public:
 							for (int x = 0; x < numberOfPaths; x++) {
 								if (Paths[x].getFrom() == From && Paths[x].getTo() == To) {
 									exp3[i] -= Paths[x].getLegCount();
-									Constrain1.erase(0, 1);
+									Constrain.erase(0, 1);
 									break;
 								}
 							}
 						}
 					}
 					else {
-						string Expression = extractExpression(Constrain1);
+						string Expression = extractExpression(Constrain);
 						string operationType = extractOperationType(Expression);
 						if (operationType == "Cap")
 						{
@@ -1104,9 +1072,9 @@ public:
 								if (Legs[x].getFrom() == From && Legs[x].getTo() == To)
 									val = Legs[x].getTE();
 							}
-							if (Constrain1[0] != '\n') {
-								Constrain1.erase(0, 1);
-								Expression = extractExpression(Constrain1);
+							if (Constrain[0] != '\n') {
+								Constrain.erase(0, 1);
+								Expression = extractExpression(Constrain);
 								string From1, To1, From2, To2;
 								extractSigma_S(Expression, From1, To1, From2, To2);
 								for (int x = 0; x < numberOfLegs; x++) {
@@ -1132,9 +1100,9 @@ public:
 								if (Legs[x].getFrom() == From && Legs[x].getTo() == To)
 									val = Legs[x].getTT();
 							}
-							if (Constrain1[0] != '\n') {
-								Constrain1.erase(0, 1);
-								Expression = extractExpression(Constrain1);
+							if (Constrain[0] != '\n') {
+								Constrain.erase(0, 1);
+								Expression = extractExpression(Constrain);
 								string From1, To1, From2, To2;
 								extractSigma_S(Expression, From1, To1, From2, To2);
 								for (int x = 0; x < numberOfLegs; x++) {
@@ -1160,9 +1128,9 @@ public:
 								if (Legs[x].getFrom() == From && Legs[x].getTo() == To)
 									val = Legs[x].getTL();
 							}
-							if (Constrain1[0] == '*') {
-								Constrain1.erase(0, 1);
-								Expression = extractExpression(Constrain1);
+							if (Constrain[0] == '*') {
+								Constrain.erase(0, 1);
+								Expression = extractExpression(Constrain);
 								string From1, To1, From2, To2;
 								extractSigma_S(Expression, From1, To1, From2, To2);
 								for (int x = 0; x < numberOfLegs; x++) {
@@ -1230,9 +1198,9 @@ public:
 									}
 								}
 							}
-							if (Constrain1[0] != '\n') {
-								Constrain1.erase(0, 1);
-								Expression = extractExpression(Constrain1);
+							if (Constrain[0] != '\n') {
+								Constrain.erase(0, 1);
+								Expression = extractExpression(Constrain);
 								From1, To1, From2, To2;
 								extractSigma_S(Expression, From1, To1, From2, To2);
 								for (int x = 0; x < numberOfLegs; x++) {
@@ -1252,57 +1220,25 @@ public:
 					}
 				}
 				//Check If end line
-				if (Constrain1[0] == '\n') {
-					if (Condition1 == "="  ) {
-						Model.add(exp2[i] == exp3[i]);
-					}
-					else if (Condition1 == "<="  ) {
-						Model.add(exp2[i] <= exp3[i]);
-					}
-					else if (Condition1 == ">="  ) {
-						Model.add(exp2[i] >= exp3[i]);
-					}
-					else if (Condition1 == "<"  ) {
-						Model.add(exp2[i] < exp3[i]);
-					}
-					else if (Condition1 == ">"  ) {
-						Model.add(exp2[i] > exp3[i]);
-					}
-					operation = '+';
-					Condition1.clear();
-					i++;
-				}
-				else if (Constrain1[0] != '<' && Constrain1[0] != '=' && Constrain1[0] != '>' && Constrain1[0] + Constrain1[1] != '<=' && Constrain1[0] + Constrain1[1] != '>=')
-					operation = Constrain1[0];
-				else if (Constrain1.substr(0, 2) == "<=" || Constrain1.substr(0, 2) == ">=") {
-					operation = '+';
-					Condition1 = Constrain1.substr(0, 2);
-					Constrain1.erase(0, 1);
-				}
-				else
-				{
-					operation = '+';
-					Condition1 = Constrain1[0];
-				}
-				Constrain1.erase(0, 1);
+				processConstraintsToModel(Constrain, Model, exp2, exp3, operation, countConstrain, Condition1, i);
 				break;
 			}
 			case '*':
 			{
 				if (Condition1.empty() ) {
-					if (isInteger(Constrain1[0])) {
-						string number = extractNumber(Constrain1);
+					if (isInteger(Constrain[0])) {
+						string number = extractNumber(Constrain);
 						int value = stringToInt(number);
 						exp2[i] *= value;
 					}
 					else if (MinMax == "Min" || MinMax == "Max") {
-						Constrain1.erase(0, 4);
-						exp2[i] *= MinMaxValue(Constrain1.substr(0, Constrain1.find('}') + 1), MinMax);
-						Constrain1.erase(0, Constrain1.find_first_of('}') + 1);
+						Constrain.erase(0, 4);
+						exp2[i] *= MinMaxValue(Constrain.substr(0, Constrain.find('}') + 1), MinMax);
+						Constrain.erase(0, Constrain.find_first_of('}') + 1);
 					}
-					else if (Constrain1[0] == '|') {
-						Constrain1.erase(0, 1);
-						string Expression = extractExpression(Constrain1);
+					else if (Constrain[0] == '|') {
+						Constrain.erase(0, 1);
+						string Expression = extractExpression(Constrain);
 						string operationType = extractOperationType(Expression);
 						if (operationType == "L") {
 							string From, To;
@@ -1318,7 +1254,7 @@ public:
 					}
 					else {
 
-						string Expression = extractExpression(Constrain1);
+						string Expression = extractExpression(Constrain);
 						string operationType = extractOperationType(Expression);
 						if (operationType == "Cap")
 						{
@@ -1406,19 +1342,19 @@ public:
 				}
 				else
 				{
-					if (isInteger(Constrain1[0])) {
-						string number = extractNumber(Constrain1);
+					if (isInteger(Constrain[0])) {
+						string number = extractNumber(Constrain);
 						int value = stringToInt(number);
 						exp3[i] *= value;
 					}
 					else if (MinMax == "Min" || MinMax == "Max") {
-						Constrain1.erase(0, 4);
-						exp3[i] *= MinMaxValue(Constrain1.substr(0, Constrain1.find('}') + 1), MinMax);
-						Constrain1.erase(0, Constrain1.find_first_of('}') + 1);
+						Constrain.erase(0, 4);
+						exp3[i] *= MinMaxValue(Constrain.substr(0, Constrain.find('}') + 1), MinMax);
+						Constrain.erase(0, Constrain.find_first_of('}') + 1);
 					}
-					else if (Constrain1[0] == '|') {
-						Constrain1.erase(0, 1);
-						string Expression = extractExpression(Constrain1);
+					else if (Constrain[0] == '|') {
+						Constrain.erase(0, 1);
+						string Expression = extractExpression(Constrain);
 						string operationType = extractOperationType(Expression);
 						if (operationType == "L") {
 							string From, To;
@@ -1426,14 +1362,14 @@ public:
 							for (int x = 0; x < numberOfPaths; x++) {
 								if (Paths[x].getFrom() == From && Paths[x].getTo() == To) {
 									exp3[i] *= Paths[x].getLegCount();
-									Constrain1.erase(0, 1);
+									Constrain.erase(0, 1);
 									break;
 								}
 							}
 						}
 					}
 					else {
-						string Expression = extractExpression(Constrain1);
+						string Expression = extractExpression(Constrain);
 						string operationType = extractOperationType(Expression);
 						if (operationType == "Cap")
 						{
@@ -1521,57 +1457,25 @@ public:
 					}
 				}
 				//Check If end line
-				if (Constrain1[0] == '\n') {
-					if (Condition1 == "="  ) {
-						Model.add(exp2[i] == exp3[i]);
-					}
-					else if (Condition1 == "<="  ) {
-						Model.add(exp2[i] <= exp3[i]);
-					}
-					else if (Condition1 == ">="  ) {
-						Model.add(exp2[i] >= exp3[i]);
-					}
-					else if (Condition1 == "<"  ) {
-						Model.add(exp2[i] < exp3[i]);
-					}
-					else if (Condition1 == ">"  ) {
-						Model.add(exp2[i] > exp3[i]);
-					}
-					operation = '+';
-					Condition1.clear();
-					i++;
-				}
-				else if (Constrain1[0] != '<' && Constrain1[0] != '=' && Constrain1[0] != '>' && Constrain1[0] + Constrain1[1] != '<=' && Constrain1[0] + Constrain1[1] != '>=')
-					operation = Constrain1[0];
-				else if (Constrain1.substr(0, 2) == "<=" || Constrain1.substr(0, 2) == ">=") {
-					operation = '+';
-					Condition1 = Constrain1.substr(0, 2);
-					Constrain1.erase(0, 1);
-				}
-				else
-				{
-					operation = '+';
-					Condition1 = Constrain1[0];
-				}
-				Constrain1.erase(0, 1);
+				processConstraintsToModel(Constrain, Model, exp2, exp3, operation, countConstrain, Condition1, i);
 				break;
 			}
 			case '/':
 			{
 				if (Condition1.empty() ) {
-					if (isInteger(Constrain1[0])) {
-						string number = extractNumber(Constrain1);
+					if (isInteger(Constrain[0])) {
+						string number = extractNumber(Constrain);
 						int value = stringToInt(number);
 						exp2[i] /= value;
 					}
 					else if (MinMax == "Min" || MinMax == "Max") {
-						Constrain1.erase(0, 4);
-						exp2[i] /= MinMaxValue(Constrain1.substr(0, Constrain1.find('}') + 1), MinMax);
-						Constrain1.erase(0, Constrain1.find_first_of('}') + 1);
+						Constrain.erase(0, 4);
+						exp2[i] /= MinMaxValue(Constrain.substr(0, Constrain.find('}') + 1), MinMax);
+						Constrain.erase(0, Constrain.find_first_of('}') + 1);
 					}
-					else if (Constrain1[0] == '|') {
-						Constrain1.erase(0, 1);
-						string Expression = extractExpression(Constrain1);
+					else if (Constrain[0] == '|') {
+						Constrain.erase(0, 1);
+						string Expression = extractExpression(Constrain);
 						string operationType = extractOperationType(Expression);
 						if (operationType == "L") {
 							string From, To;
@@ -1587,7 +1491,7 @@ public:
 					}
 					else {
 
-						string Expression = extractExpression(Constrain1);
+						string Expression = extractExpression(Constrain);
 						string operationType = extractOperationType(Expression);
 						if (operationType == "Cap")
 						{
@@ -1675,19 +1579,19 @@ public:
 				}
 				else
 				{
-					if (isInteger(Constrain1[0])) {
-						string number = extractNumber(Constrain1);
+					if (isInteger(Constrain[0])) {
+						string number = extractNumber(Constrain);
 						int value = stringToInt(number);
 						exp3[i] /= value;
 					}
 					else if (MinMax == "Min" || MinMax == "Max") {
-						Constrain1.erase(0, 4);
-						exp3[i] /= MinMaxValue(Constrain1.substr(0, Constrain1.find('}') + 1), MinMax);
-						Constrain1.erase(0, Constrain1.find_first_of('}') + 1);
+						Constrain.erase(0, 4);
+						exp3[i] /= MinMaxValue(Constrain.substr(0, Constrain.find('}') + 1), MinMax);
+						Constrain.erase(0, Constrain.find_first_of('}') + 1);
 					}
-					else if (Constrain1[0] == '|') {
-						Constrain1.erase(0, 1);
-						string Expression = extractExpression(Constrain1);
+					else if (Constrain[0] == '|') {
+						Constrain.erase(0, 1);
+						string Expression = extractExpression(Constrain);
 						string operationType = extractOperationType(Expression);
 						if (operationType == "L") {
 							string From, To;
@@ -1695,14 +1599,14 @@ public:
 							for (int x = 0; x < numberOfPaths; x++) {
 								if (Paths[x].getFrom() == From && Paths[x].getTo() == To) {
 									exp3[i] /= Paths[x].getLegCount();
-									Constrain1.erase(0, 1);
+									Constrain.erase(0, 1);
 									break;
 								}
 							}
 						}
 					}
 					else {
-						string Expression = extractExpression(Constrain1);
+						string Expression = extractExpression(Constrain);
 						string operationType = extractOperationType(Expression);
 						if (operationType == "Cap")
 						{
@@ -1789,39 +1693,7 @@ public:
 					}
 				}
 				//Check If end line
-				if (Constrain1[0] == '\n') {
-					if (Condition1 == "="  ) {
-						Model.add(exp2[i] == exp3[i]);
-					}
-					else if (Condition1 == "<="  ) {
-						Model.add(exp2[i] <= exp3[i]);
-					}
-					else if (Condition1 == ">="  ) {
-						Model.add(exp2[i] >= exp3[i]);
-					}
-					else if (Condition1 == "<"  ) {
-						Model.add(exp2[i] < exp3[i]);
-					}
-					else if (Condition1 == ">"  ) {
-						Model.add(exp2[i] > exp3[i]);
-					}
-					operation = '+';
-					Condition1.clear();
-					i++;
-				}
-				else if (Constrain1[0] != '<' && Constrain1[0] != '=' && Constrain1[0] != '>' && Constrain1[0] + Constrain1[1] != '<=' && Constrain1[0] + Constrain1[1] != '>=')
-					operation = Constrain1[0];
-				else if (Constrain1.substr(0, 2) == "<=" || Constrain1.substr(0, 2) == ">=") {
-					operation = '+';
-					Condition1 = Constrain1.substr(0, 2);
-					Constrain1.erase(0, 1);
-				}
-				else
-				{
-					operation = '+';
-					Condition1 = Constrain1[0];
-				}
-				Constrain1.erase(0, 1);
+				processConstraintsToModel(Constrain, Model, exp2, exp3, operation, countConstrain, Condition1, i);
 				break;
 			}
 			}
@@ -2224,6 +2096,42 @@ public:
 
 		// Extract the second city
 		To2 = text.substr(city2StartPos2, city2EndPos2 - city2StartPos2);
+	}
+	void processConstraintsToModel(string &constrain1Data, IloModel& model, IloExpr* exp2, IloExpr* exp3, char &operation, int countConstrain1, string &Condition1, int &i) {
+		if (constrain1Data[0] == '\n') {
+			if (Condition1 == "=") {
+				model.add(exp2[i] == exp3[i]);
+			}
+			else if (Condition1 == "<=") {
+				model.add(exp2[i] <= exp3[i]);
+			}
+			else if (Condition1 == ">=") {
+				model.add(exp2[i] >= exp3[i]);
+			}
+			else if (Condition1 == "<") {
+				model.add(exp2[i] < exp3[i]);
+			}
+			else if (Condition1 == ">") {
+				model.add(exp2[i] > exp3[i]);
+			}
+			operation = '+';
+			Condition1.clear();
+			i++;
+		}
+		else if (constrain1Data[0] != '<' && constrain1Data[0] != '=' && constrain1Data[0] != '>' &&
+			(constrain1Data[0] + constrain1Data[1] != '<=' && constrain1Data[0] + constrain1Data[1] != '>=')) {
+			operation = constrain1Data[0];
+		}
+		else if (constrain1Data.substr(0, 2) == "<=" || constrain1Data.substr(0, 2) == ">=") {
+			operation = '+';
+			Condition1 = constrain1Data.substr(0, 2);
+			constrain1Data.erase(0, 1);
+		}
+		else {
+			operation = '+';
+			Condition1 = constrain1Data[0];
+		}
+		constrain1Data.erase(0, 1);
 	}
 private:
 	typedef IloArray<IloNumVarArray> NumVar2D;

@@ -277,4 +277,4 @@ generations = 50
 
 ga = GeneticAlgorithm(model_file, solution_file, crossover_rate, mutation_rate, generations)
 best_individual = ga.run()
-print(f"Best Individual: {best_individual.genes} with Fitness: {best_individual.fitness}")
+print(f"Best Individual: {best_individual.genes}\nwith Fitness: {best_individual.fitness}")
